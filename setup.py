@@ -22,6 +22,7 @@ setuptools.setup(
         "pytest",
         "numpy>=1.24.3",
         "jaxopt>=0.8",
+
     ],
     long_description_content_type="text/markdown",
     keywords="linear model high-dimensional VAR vector autoregression tensor factorization key factors econometrics",
