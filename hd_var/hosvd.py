@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
-from operations import ttm, nvecs
+from .operations import ttm, nvecs
 
 
 def hosvd(X, rank, dims=None, dtype=None, compute_core=True):
@@ -31,7 +31,7 @@ def hosvd(X, rank, dims=None, dtype=None, compute_core=True):
         U[d] = np.array(nvecs(X, d, rank[d]), dtype=dtype)
     if compute_core:
         core = ttm(X, U, transp=True)
-        return U, core
+        return core, core
     else:
         return U
 
