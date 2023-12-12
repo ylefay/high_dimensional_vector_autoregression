@@ -6,11 +6,15 @@ from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import eigsh
 
 
-def mode_flatten(tensor, mode):
+def mode_fold(tensor, mode):
     """
     Flatten a tensor along its k-th mode.
     """
     return np.moveaxis(tensor, mode, 0).reshape(tensor.shape[mode], -1, order='F')
+
+
+def mode_unfold(tensor, mode, shape):
+    return np.moveaxis(np.reshape(tensor, shape, order='F'), 0, mode)
 
 
 def from_to_without(frm, to, without, step=1, skip=1, reverse=False, separate=False):
@@ -138,7 +142,7 @@ def nvecs(X, n, rank, do_flipsign=True, dtype=float):
     """
     Eigendecomposition of mode-n unfolding of a tensor
     """
-    Xn = mode_flatten(X, n)
+    Xn = mode_fold(X, n)
     if issparse_mat(Xn):
         Xn = csr_matrix(Xn, dtype=dtype)
         Y = Xn.dot(Xn.T)
