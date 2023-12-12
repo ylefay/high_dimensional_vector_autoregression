@@ -31,7 +31,7 @@ def hosvd(X, rank, dims=None, dtype=None, compute_core=True):
         U[d] = np.array(nvecs(X, d, rank[d]), dtype=dtype)
     if compute_core:
         core = ttm(X, U, transp=True)
-        return core, core
+        return U, core
     else:
         return U
 
