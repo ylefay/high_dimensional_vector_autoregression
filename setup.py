@@ -12,17 +12,14 @@ except Exception as e:
 setuptools.setup(
     name="hd_var",
     author="Yvann Le Fay, Antoine Schoonaert",
-    description="Efficient JAX implementation of high-dimensional VAR models using tensor factorization.",
+    description="Efficient implementation of high-dimensional VAR models using tensor factorization.",
     long_description=long_description,
     version="0.1",
     packages=setuptools.find_packages(),
     install_requires=[
-        "jax>=0.3.25",
-        "jaxlib>=0.3.25",
         "pytest",
         "numpy>=1.24.3",
-        "jaxopt>=0.8",
-
+        "scipy",
     ],
     long_description_content_type="text/markdown",
     keywords="linear model high-dimensional VAR vector autoregression tensor factorization key factors econometrics",
