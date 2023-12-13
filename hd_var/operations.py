@@ -248,3 +248,11 @@ def ttm_compute(X, V, mode, transp):
     # transpose + argsort(order) equals ipermute
     newT = np.transpose(newT, np.argsort(order))
     return newT
+
+
+def rank_tensor(X):
+    """
+    Compute the ranks of a tensor X as
+    rank(X, j) = rank(X_(j)) for j = 1, ..., ndims(X).
+    """
+    return [np.linalg.matrix_rank(mode_fold(X, n)) for n in range(X.ndim)]
