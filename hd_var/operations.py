@@ -17,6 +17,36 @@ def mode_unfold(tensor, mode, shape):
     return np.moveaxis(np.reshape(tensor, shape, order='F'), 0, mode)
 
 
+def rank_tensor(X):
+    """
+    Compute the ranks of a tensor X as
+    rank(X, j) = rank(X_(j)) for j = 1, ..., ndims(X).
+    """
+    return [np.linalg.matrix_rank(mode_fold(X, n)) for n in range(X.ndim)]
+
+
+def compute_A(G, Us):
+    U1, U2, U3 = Us
+    return ttm(ttm(ttm(G, U1, mode=0), U2, mode=1), U3, mode=2)
+
+
+## dtensor.py
+
+# sktensor.dtensor - base class for dense tensors
+# Copyright (C) 2013 Maximilian Nickel <mnick@mit.edu>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 def from_to_without(frm, to, without, step=1, skip=1, reverse=False, separate=False):
     """
     Helper function to create ranges with missing entries
@@ -86,31 +116,6 @@ def ttm(X, V, mode=None, transp=False, without=False):
         for i in range(1, len(dims)):
             Y = ttm_compute(Y, V[vidx[i]], dims[i], transp)
     return Y
-
-
-def ttv(X, v, modes=[], without=False):
-    """
-    Tensor times vector product
-
-    Parameters
-    ----------
-    v : 1-d array or tuple of 1-d arrays
-        Vector to be multiplied with tensor.
-    modes : array_like of integers, optional
-        Modes in which the vectors should be multiplied.
-    without : boolean, optional
-        If True, vectors are multiplied in all modes **except** the
-        modes specified in ``modes``.
-
-    """
-    if not isinstance(v, tuple):
-        v = (v,)
-    dims, vidx = check_multiplication_dims(modes, X.ndim, len(v), vidx=True, without=without)
-    for i in range(len(dims)):
-        if not len(v[vidx[i]]) == X.shape[dims[i]]:
-            raise ValueError('Multiplicant is wrong size')
-    remdims = np.setdiff1d(range(X.ndim), dims)
-    return ttv_compute(X, v, dims, vidx, remdims)
 
 
 def check_multiplication_dims(dims, N, M, vidx=False, without=False):
@@ -186,51 +191,6 @@ def teneye(dim, order):
     return I.reshape(np.ones(order) * dim)
 
 
-# vim: set et:
-
-
-## dtensor.py
-
-# sktensor.dtensor - base class for dense tensors
-# Copyright (C) 2013 Maximilian Nickel <mnick@mit.edu>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
-def ttv_compute(X, v, dims, vidx, remdims):
-    """
-    Tensor times vector product
-
-    Parameter
-    ---------
-    """
-    if not isinstance(v, tuple):
-        raise ValueError('v must be a tuple of vectors')
-    ndim = X.ndim
-    order = list(remdims) + list(dims)
-    if ndim > 1:
-        T = np.transpose(X, order)
-    sz = np.array(X.shape)[order]
-    for i in np.arange(len(dims), 0, -1):
-        T = T.reshape((sz[:ndim - 1].prod(), sz[ndim - 1]))
-        T = T.dot(v[vidx[i - 1]])
-        ndim -= 1
-    if ndim > 0:
-        T = T.reshape(sz[:ndim])
-    return T
-
-
 def ttm_compute(X, V, mode, transp):
     sz = np.array(X.shape)
     r1, r2 = from_to_without(0, X.ndim, mode, separate=True)
@@ -248,11 +208,3 @@ def ttm_compute(X, V, mode, transp):
     # transpose + argsort(order) equals ipermute
     newT = np.transpose(newT, np.argsort(order))
     return newT
-
-
-def rank_tensor(X):
-    """
-    Compute the ranks of a tensor X as
-    rank(X, j) = rank(X_(j)) for j = 1, ..., ndims(X).
-    """
-    return [np.linalg.matrix_rank(mode_fold(X, n)) for n in range(X.ndim)]

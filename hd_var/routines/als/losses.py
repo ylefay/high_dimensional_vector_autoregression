@@ -2,10 +2,13 @@ import numpy as np
 
 
 def lossU1(y_ts, x_ts, U1, U2, U3, G_flattened_mode1):
+    kronU3U2atG1 = np.kron(U3, U2) @ G_flattened_mode1.T
+    id = np.eye(U1.shape[0])
+    vecU1 = U1.reshape(-1, )
+
     def _lossU1(y_t, x_t):
-        y_t = y_t.T
-        _ = y_t - np.kron((x_t.reshape(-1) @ np.kron(U3, U2) @ G_flattened_mode1.T),
-                          np.eye(U1.shape[0])) @ U1.reshape(-1, )
+        _ = y_t - np.kron((x_t.reshape(-1) @ kronU3U2atG1),
+                          id) @ vecU1
         norms = np.sum(_ ** 2, axis=-1)
         return norms
 
@@ -30,8 +33,12 @@ def constructx(y_ts, order):
 
 
 def lossU2(y_ts, X_ts, U1, U2, U3, G_flattened_mode1):
+    U1atG1 = U1 @ G_flattened_mode1
+    id = np.eye(U2.shape[1])
+    vecU2T = (U2.T).reshape(-1, )
+
     def _lossU2(y_t, X_t):
-        _ = y_t - U1 @ G_flattened_mode1 @ np.kron((X_t @ U3).T, np.eye(U2.shape[1])) @ (U2.T).reshape(-1, )
+        _ = y_t - U1atG1 @ np.kron((X_t @ U3).T, id) @ vecU2T
         norms = np.sum(_ ** 2, axis=-1)
         return norms
 
@@ -39,8 +46,12 @@ def lossU2(y_ts, X_ts, U1, U2, U3, G_flattened_mode1):
 
 
 def lossU3(y_ts, X_ts, U1, U2, U3, G_flattened_mode1):
+    U1atG1 = U1 @ G_flattened_mode1
+    id = np.eye(U3.shape[1])
+    vecU3 = U3.reshape(-1, )
+
     def _lossU3(y_t, X_t):
-        _ = y_t - U1 @ G_flattened_mode1 @ np.kron(np.eye(U3.shape[1]), (U2.T @ X_t)) @ U3.reshape(-1, )
+        _ = y_t - U1atG1 @ np.kron(id, (U2.T @ X_t)) @ vecU3
         norms = np.sum(_ ** 2, axis=-1)
         return norms
 
@@ -48,8 +59,10 @@ def lossU3(y_ts, X_ts, U1, U2, U3, G_flattened_mode1):
 
 
 def lossU4(y_ts, x_ts, U1, U2, U3, G_flattened_mode1):
+    kronU3U2T = np.kron(U3, U2).T
+
     def _lossU4(y_t, x_t):
-        _ = y_t - np.kron((np.kron(U3, U2).T @ x_t.reshape(-1, )).T, U1) @ G_flattened_mode1.reshape(-1, )
+        _ = y_t - np.kron((kronU3U2T @ x_t.reshape(-1, )).T, U1) @ G_flattened_mode1.reshape(-1, )
         norms = np.sum(_ ** 2, axis=-1)
         return norms
 
