@@ -3,23 +3,17 @@ from hd_var.hosvd import hosvd
 from hd_var.operations import mode_fold, mode_unfold, fast_ttm
 from hd_var.routines.als.losses import lossU1, lossU2, lossU3, lossU4
 from hd_var.routines.als.utils import constructX
-from jax.scipy.optimize import minimize
+from hd_var.utils import minimize_matrix_input
 import jax.numpy as jnp
 from functools import partial
 
 
-def minimize_matrix_input(f, init_matrix):
-    shape = init_matrix.shape
-
-    def _f(flatten_matrix):
-        return f(flatten_matrix.reshape(shape))
-
-    minimization = minimize(_f, init_matrix.flatten(), method='BFGS', options={'maxiter': 5})
-
-    return minimization.x.reshape(shape), minimization.fun
-
-
 def als_compute(A_init, ranks, y_ts, criterion):
+    """
+    Alternative Least Square algorithm for VAR model, using HOSVD decomposition.
+    Algorithm 1.
+    Author: Yvann Le Fay
+    """
     A = A_init
     Us, G = hosvd(A, ranks)
     U1, U2, U3 = Us

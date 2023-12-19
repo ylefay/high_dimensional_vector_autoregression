@@ -21,8 +21,8 @@ def main(case=1, check=False):
     cov = np.eye(N, ) * sigma  # Covariance matrix of the innovations
     A = generate_A_given_rank(N, P, ranks)
     if check:
-        check_ass1(A)
-        check_ass2(A)
+        while not check_ass2(A):
+            A = generate_A_given_rank(N, P, ranks)
     X, A, E = generate(A, T, P, N, cov)
     np.savez(f'./data/var_62_{T}_{N}_{P}.npz', X=X, A=A, E=E)
 
