@@ -4,7 +4,7 @@ from scipy.linalg import eigh
 from scipy.sparse import issparse as issparse_mat
 from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import eigsh
-
+import jax.numpy as jnp
 
 def mode_fold(tensor, mode):
     """
@@ -14,7 +14,7 @@ def mode_fold(tensor, mode):
 
 
 def mode_unfold(tensor, mode, shape):
-    return np.moveaxis(np.reshape(tensor, shape, order='F'), 0, mode)
+    return jnp.moveaxis(np.reshape(tensor, shape, order='F'), 0, mode)
 
 
 def rank_tensor(X):
@@ -23,11 +23,6 @@ def rank_tensor(X):
     rank(X, j) = rank(X_(j)) for j = 1, ..., ndims(X).
     """
     return [np.linalg.matrix_rank(mode_fold(X, n)) for n in range(X.ndim)]
-
-
-def compute_A(G, Us):
-    U1, U2, U3 = Us
-    return ttm(ttm(ttm(G, U1, mode=0), U2, mode=1), U3, mode=2)
 
 
 ## dtensor.py

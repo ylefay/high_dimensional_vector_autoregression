@@ -1,8 +1,7 @@
-import jax.numpy as np
-import jax
+import numpy as np
 
 
-def lossU1(y_ts, x_ts, X_ts, U1, U2, U3, G_flattened_mode1):
+def lossU1(y_ts, x_ts, U1, U2, U3, G_flattened_mode1):
     kronU3U2atG1T = np.kron(U3, U2) @ G_flattened_mode1.T
     id = np.eye(U1.shape[0])
     vecU1 = U1.reshape(-1, )
@@ -13,10 +12,10 @@ def lossU1(y_ts, x_ts, X_ts, U1, U2, U3, G_flattened_mode1):
         norms = np.sum(_ ** 2, axis=-1)
         return norms
 
-    return np.mean(jax.vmap(_lossU1, in_axes=(0, 0))(y_ts.T, x_ts))
+    return np.mean(np.vectorize(_lossU1, signature="(m),(n,o)->()")(y_ts.T, x_ts))
 
 
-def lossU2(y_ts, x_ts, X_ts, U1, U2, U3, G_flattened_mode1):
+def lossU2(y_ts, X_ts, U1, U2, U3, G_flattened_mode1):
     U1atG1 = U1 @ G_flattened_mode1
     id = np.eye(U2.shape[1])
     vecU2T = (U2.T).reshape(-1, )
@@ -26,10 +25,10 @@ def lossU2(y_ts, x_ts, X_ts, U1, U2, U3, G_flattened_mode1):
         norms = np.mean(_ ** 2, axis=-1)
         return norms
 
-    return np.mean(jax.vmap(_lossU2, in_axes=(0, 0))(y_ts.T, X_ts))
+    return np.sum(np.vectorize(_lossU2, signature="(m),(n,o)->()")(y_ts.T, X_ts))
 
 
-def lossU3(y_ts, x_ts, X_ts, U1, U2, U3, G_flattened_mode1):
+def lossU3(y_ts, X_ts, U1, U2, U3, G_flattened_mode1):
     U1atG1 = U1 @ G_flattened_mode1
     id = np.eye(U3.shape[1])
     vecU3 = U3.reshape(-1, )
@@ -39,10 +38,10 @@ def lossU3(y_ts, x_ts, X_ts, U1, U2, U3, G_flattened_mode1):
         norms = np.sum(_ ** 2, axis=-1)
         return norms
 
-    return np.mean(jax.vmap(_lossU3, in_axes=(0, 0))(y_ts.T, X_ts))
+    return np.mean(np.vectorize(_lossU3, signature="(m),(n,o)->()")(y_ts.T, X_ts))
 
 
-def lossU4(y_ts, x_ts, X_ts, U1, U2, U3, G_flattened_mode1):
+def lossU4(y_ts, x_ts, U1, U2, U3, G_flattened_mode1):
     kronU3U2T = np.kron(U3, U2).T
     vecG_flattened_mode1 = G_flattened_mode1.reshape(-1, )
 
@@ -51,4 +50,4 @@ def lossU4(y_ts, x_ts, X_ts, U1, U2, U3, G_flattened_mode1):
         norms = np.sum(_ ** 2, axis=-1)
         return norms
 
-    return np.mean(jax.vmap(_lossU4, in_axes=(0, 0))(y_ts.T, x_ts))
+    return np.mean(np.vectorize(_lossU4, signature="(m),(n,o)->()")(y_ts.T, x_ts))

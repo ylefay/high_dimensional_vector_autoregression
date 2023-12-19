@@ -4,7 +4,8 @@ from hd_var.operations import rank_tensor
 from hd_var.assumptions import check_ass2, check_ass1
 
 INFERENCE_ROUTINES = [als_compute]
-criterion = lambda A, prev_A, iter: iter < 100 and np.linalg.norm(A - prev_A) > 1e-3
+criterion = lambda A, prev_A, iter: iter < 10 and np.linalg.norm(A - prev_A) / (
+    np.linalg.norm(prev_A) if np.linalg.norm(prev_A) > 0 else 1) > 1e-3
 
 
 def main(inference_routine, dataset, check=False):
@@ -17,12 +18,15 @@ def main(inference_routine, dataset, check=False):
     P = A.shape[-1]  # cheating
     ranks = rank_tensor(A)  # cheating
     A_init = np.random.normal(size=(N, N, P))
+    print(f'A_true:{A}')
+    print(f'A_init:{A_init}')
     res = inference_routine(A_init, ranks, X, criterion)
     return res, A
 
 
 if __name__ == '__main__':
     for inference_routine in INFERENCE_ROUTINES:
-        dataset = np.load(f'./data/var_62_100_10_5.npz')
+        dataset = np.load(f'./data/var_10000_2_3.npz')
         res, A = main(inference_routine, dataset)
         print(f'A_estimated:{res[1]}, A_true:{A}')
+        print(f'rel error:{np.linalg.norm(res[1] - A) / np.linalg.norm(A)}')
