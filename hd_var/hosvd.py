@@ -18,19 +18,21 @@
 
 import numpy as np
 from .operations import ttm, nvecs
+import numpy.testing as npt
 
 
-def hosvd(X, rank, dims=None, dtype=None, compute_core=True):
-    U = [None for _ in range(X.ndim)]
+def hosvd(A, rank, dims=None, dtype=None, compute_core=True):
+    U = [None for _ in range(A.ndim)]
     if dims is None:
-        dims = range(X.ndim)
+        dims = range(A.ndim)
 
     if dtype is None:
-        dtype = X.dtype
+        dtype = A.dtype
     for d in dims:
-        U[d] = np.array(nvecs(X, d, rank[d]), dtype=dtype)
+        U[d] = np.array(nvecs(A, d, rank[d]), dtype=dtype)
     if compute_core:
-        core = ttm(X, U, transp=True)
+        core = ttm(A, U, transp=True)
+        npt.assert_allclose(ttm(core, U), A, atol=1e-5)
         return U, core
     else:
         return U

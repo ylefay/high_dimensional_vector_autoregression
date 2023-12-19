@@ -1,5 +1,5 @@
 import numpy as np
-from hd_var.generate import generate_A_according_to_section62_second_exp, generate
+from hd_var.generate import generate_A_according_to_section62, generate
 from hd_var.assumptions import check_ass2, check_ass1
 
 
@@ -13,7 +13,7 @@ def main(case=1, check=False):
     sigma = 1.0  # Variance of the innovations, assuming diagonal noise
     N, P = 10, 5
     cov = np.eye(N, ) * sigma  # Covariance matrix of the innovations
-    A = generate_A_according_to_section62_second_exp(case)
+    A = generate_A_according_to_section62(case)
     if check:
         check_ass1(A)
         check_ass2(A)

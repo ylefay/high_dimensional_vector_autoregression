@@ -164,7 +164,7 @@ def generate_orthonormal_matrices(N, P, ranks):
     return Us
 
 
-def generate_A_according_to_section62(ranks=[3, 3, 2]):
+def generate_A_given_rank(N=10, P=5, ranks=[3, 3, 2]):
     """
     Generate A according to Section 6.2.
     In the paper, there are three cases:
@@ -173,14 +173,13 @@ def generate_A_according_to_section62(ranks=[3, 3, 2]):
         (r1, r2, r3) = (3, 3, 4)
     The tensor might not generate stationary VAR.
     """
-    N, P = 10, 5
     Us = generate_orthonormal_matrices(N, P, ranks)
     G = generate_core_tensor(ranks)
     A = ttm(G, Us)
     return A
 
 
-def generate_A_according_to_section62_second_exp(case=1):
+def generate_A_according_to_section62(case=1):
     """
     Case 1:
         (r1, r2, r3, s1, s2, s3) = (2, 2, 2, 3, 3, 2)
@@ -193,8 +192,4 @@ def generate_A_according_to_section62_second_exp(case=1):
         ranks = [2, 2, 2]
     if case == 2 or case == 3:
         ranks = [3, 3, 3]
-
-    G = generate_core_tensor(ranks)
-    Us = generate_sparse_orthonormal_matrices(case)
-    A = ttm(G, Us)
-    return A
+    return generate_A_given_rank(N=10, P=5, ranks=ranks)

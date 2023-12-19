@@ -1,5 +1,6 @@
 import numpy as np
 from hd_var.routines.als.als import als_compute
+from hd_var.generate import generate_A_given_rank
 from hd_var.operations import rank_tensor
 from hd_var.assumptions import check_ass2, check_ass1
 
@@ -17,7 +18,7 @@ def main(inference_routine, dataset, check=False):
     N, T = X.shape
     P = A.shape[-1]  # cheating
     ranks = rank_tensor(A)  # cheating
-    A_init = np.random.normal(size=(N, N, P))
+    A_init = generate_A_given_rank(N, P, ranks)
     print(f'A_true:{A}')
     print(f'A_init:{A_init}')
     res = inference_routine(A_init, ranks, X, criterion)

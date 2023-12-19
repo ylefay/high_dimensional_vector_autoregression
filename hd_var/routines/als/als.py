@@ -45,13 +45,9 @@ def als_compute(A_init, ranks, y_ts, criterion):
         G_flattened_mode1, l4 = minimize_matrix_input(
             lambda _G_flattened_mode1: lossU4(y_ts, x_ts, X_ts, U1, U2, U3, _G_flattened_mode1),
             G_flattened_mode1)
+        assert l1 + l2 + l3 + l4 < 1
         G = mode_unfold(G_flattened_mode1, 0, G_shape)
-        A = ttm(G, (U1, U2, U3))
+        # A = ttm(G, (U1, U2, U3)) no need to compute A.
         print(f'iter:{iter}, l1:{l1}, l2:{l2}, l3:{l3}, l4:{l4}')
-        print(f'A:{A}')
-
-    Us = [None for _ in range(3)]
-    for j in range(3):
-        Us[j] = np.array(nvecs(A, j, ranks[j]))
-    G = ttm(A, Us, transp=True)
+    Us, G = hosvd(A, ranks)
     return G, A, Us

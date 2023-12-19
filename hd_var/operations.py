@@ -6,6 +6,7 @@ from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import eigsh
 import jax.numpy as jnp
 
+
 def mode_fold(tensor, mode):
     """
     Flatten a tensor along its k-th mode.
@@ -203,3 +204,19 @@ def ttm_compute(X, V, mode, transp):
     # transpose + argsort(order) equals ipermute
     newT = np.transpose(newT, np.argsort(order))
     return newT
+
+
+def mode1(X, V):
+    return np.einsum('ijk,si->sjk', X, V)
+
+
+def mode2(X, V):
+    return np.einsum('ijk,sj->isk', X, V)
+
+
+def mode3(X, V):
+    return np.einsum('ijk,sk->ijs', X, V)
+
+
+def vec(X):
+    return (X.T).reshape(-1, )
