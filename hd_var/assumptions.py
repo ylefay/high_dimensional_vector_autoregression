@@ -12,10 +12,13 @@ def check_ass2(A):
     ranks = rank_tensor(A)
     Us, G = hosvd(A, ranks)
     for i in range(3):
-        assert np.all(Us[i][0, :] >= 0)
+        if not np.all(Us[i][0, :] >= 0):
+            return False
         Ai = mode_fold(A, i)
         sv = np.linalg.svd(Ai, compute_uv=False)
-        assert len(np.unique(sv)) == len(sv)  # ... up to precision machine
+        if not len(np.unique(sv)) == len(sv):  # ... up to precision machine
+            return False
+    return True
 
 
 def check_ass1(A):
@@ -47,3 +50,10 @@ def check_ass1(A):
     except Exception as e:
         print(e)
         return True
+
+
+def check_ass1_bis(A):
+    """
+    Implementing the ADF test ?
+    """
+    raise NotImplementedError

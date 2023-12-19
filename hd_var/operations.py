@@ -207,15 +207,19 @@ def ttm_compute(X, V, mode, transp):
 
 
 def mode1(X, V):
-    return np.einsum('ijk,si->sjk', X, V)
+    return jnp.einsum('ijk,si->sjk', X, V)
 
 
 def mode2(X, V):
-    return np.einsum('ijk,sj->isk', X, V)
+    return jnp.einsum('ijk,sj->isk', X, V)
 
 
 def mode3(X, V):
-    return np.einsum('ijk,sk->ijs', X, V)
+    return jnp.einsum('ijk,sk->ijs', X, V)
+
+
+def fast_ttm(X, Us):
+    return mode3(mode2(mode1(X, Us[0]), Us[1]), Us[2])
 
 
 def vec(X):
