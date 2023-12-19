@@ -36,11 +36,3 @@ def hosvd(A, rank, dims=None, dtype=None, compute_core=True):
         return U, core
     else:
         return U
-
-
-"""
-tensor = np.random.normal(0, 1, (10, 22, 34))
-rank = [3, 2, 4]
-result = hosvd(tensor, rank, dims=None, dtype=None, compute_core=True)
-print(result)
-"""

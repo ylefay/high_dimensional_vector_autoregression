@@ -192,4 +192,7 @@ def generate_A_according_to_section62(case=1):
         ranks = [2, 2, 2]
     if case == 2 or case == 3:
         ranks = [3, 3, 3]
-    return generate_A_given_rank(N=10, P=5, ranks=ranks)
+    G = generate_core_tensor(ranks)
+    Us = generate_sparse_orthonormal_matrices(case)
+    A = ttm(G, Us)
+    return A

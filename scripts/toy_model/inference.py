@@ -27,7 +27,7 @@ def main(inference_routine, dataset, check=False):
 
 if __name__ == '__main__':
     for inference_routine in INFERENCE_ROUTINES:
-        dataset = np.load(f'./data/var_10000_2_3.npz')
+        dataset = np.load(f'./data/var_62_bis_100000_10_5.npz')
         res, A = main(inference_routine, dataset)
         print(f'A_estimated:{res[1]}, A_true:{A}')
         print(f'rel error:{np.linalg.norm(res[1] - A) / np.linalg.norm(A)}')

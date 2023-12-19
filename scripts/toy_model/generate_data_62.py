@@ -19,7 +19,7 @@ def main(case=1, check=False):
     elif case == 3:
         ranks = [3, 3, 4]
     cov = np.eye(N, ) * sigma  # Covariance matrix of the innovations
-    A = generate_A_given_rank(ranks)
+    A = generate_A_given_rank(N, P, ranks)
     if check:
         check_ass1(A)
         check_ass2(A)
@@ -28,4 +28,4 @@ def main(case=1, check=False):
 
 
 if __name__ == '__main__':
-    main(case=1, check=False)
+    main(case=1, check=True)

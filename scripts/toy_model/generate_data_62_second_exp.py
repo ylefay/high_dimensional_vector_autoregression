@@ -9,7 +9,7 @@ def main(case=1, check=False):
     Generate G by scaling a standard normal tensor.
     Generate the U_is as described in section F.
     """
-    T = 100  # Length of the time series
+    T = 100000  # Length of the time series
     sigma = 1.0  # Variance of the innovations, assuming diagonal noise
     N, P = 10, 5
     cov = np.eye(N, ) * sigma  # Covariance matrix of the innovations
@@ -22,4 +22,4 @@ def main(case=1, check=False):
 
 
 if __name__ == '__main__':
-    main(case=1, check=False)
+    main(case=1, check=True)
