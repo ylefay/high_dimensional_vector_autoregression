@@ -23,8 +23,8 @@ def main(case=1, check=False):
     if check:
         while not check_ass2(A):
             A = generate_A_given_rank(N, P, ranks)
-    X, A, E = generate(A, T, P, N, cov)
-    np.savez(f'./data/var_62_{T}_{N}_{P}.npz', X=X, A=A, E=E)
+    y, A, E = generate(A, T, P, N, cov)
+    np.savez(f'./data/var_62_{T}_{N}_{P}.npz', y=y, A=A, E=E)
 
 
 if __name__ == '__main__':

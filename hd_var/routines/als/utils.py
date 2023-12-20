@@ -2,6 +2,10 @@ import numpy as np
 
 
 def constructX(y_ts, order):
+    """
+    Construct the tensor X = [X_0, ..., X_T],
+    where X_t =  [y_{t-1}, ..., y_{t-p}]
+    """
     T = y_ts.shape[1]
 
     def lag(y, i, order):
@@ -16,4 +20,8 @@ def constructX(y_ts, order):
 
 
 def constructx(y_ts, order):
+    """
+    Construct the tensor x = [x_0, ..., x_T],
+    where x_t = [y_{t-1}^T, ..., y_{t-p}^T]^T.
+    """
     return np.moveaxis(constructX(y_ts, order).T, -1, 0)

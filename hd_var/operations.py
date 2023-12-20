@@ -206,6 +206,11 @@ def ttm_compute(X, V, mode, transp):
     return newT
 
 
+"""
+Tensor multiplication along different mode.
+"""
+
+
 def mode1(X, V):
     return jnp.einsum('ijk,si->sjk', X, V)
 
@@ -219,8 +224,15 @@ def mode3(X, V):
 
 
 def fast_ttm(X, Us):
+    """
+    Similar to ttm_compute for computing
+        G = X x_1 U_1 x_2 U_2 x_3 U_3
+    """
     return mode3(mode2(mode1(X, Us[0]), Us[1]), Us[2])
 
 
 def vec(X):
+    """
+    Vectorization of a matrix.
+    """
     return (X.T).reshape(-1, )

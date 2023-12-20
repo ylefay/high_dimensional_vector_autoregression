@@ -8,7 +8,13 @@ import jax.numpy as jnp
 from functools import partial
 
 
-def als_compute(A_init, ranks, y_ts, criterion):
+@jax.jit
+def criterion(inps):
+    prev_A, A, iter, _, _, _, _ = inps
+    return (iter < 1000) & (jnp.linalg.norm(prev_A - A) / jnp.linalg.norm(prev_A) > 1e-2)
+
+
+def als_compute(A_init, ranks, y_ts, criterion=criterion):
     """
     Alternative Least Square algorithm for VAR model, using HOSVD decomposition.
     Algorithm 1.
@@ -51,3 +57,7 @@ def als_compute(A_init, ranks, y_ts, criterion):
                                              (A, jnp.zeros_like(A), iter, U1, U2, U3, G_flattened_mode1))
     Us, G = hosvd(A, ranks)
     return G, A, Us
+
+
+def als_compute_closed_form_optimization():
+    raise NotImplementedError

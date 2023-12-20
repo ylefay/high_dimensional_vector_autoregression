@@ -2,6 +2,9 @@ from jax.scipy.optimize import minimize
 
 
 def minimize_matrix_input(f, init_matrix):
+    """
+    Wrapper around the scipy minimize function to handle matrix input.
+    """
     shape = init_matrix.shape
 
     def _f(flatten_matrix):

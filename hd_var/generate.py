@@ -19,14 +19,14 @@ def generate(A, T, P, N, cov):
         cov = np.eye(N)
     # Generate VAR innovations
     E = np.moveaxis(np.random.multivariate_normal(np.zeros(N), cov, size=(T,)), 0, -1)
-    X = np.zeros((N, T))
+    y = np.zeros((N, T))
     for t in range(P, T):
-        X[:, t] = E[:, t]
+        y[:, t] = E[:, t]
         for p in range(P):
-            X[:, t] += A[:, :, p] @ X[:, t - p - 1]
-    assert np.abs(X).max() < T * P * np.linalg.norm(
+            y[:, t] += A[:, :, p] @ y[:, t - p - 1]
+    assert np.abs(y).max() < T * P * np.linalg.norm(
         cov)  # not sure about that, the time serie should not be too big if stationary.
-    return X, A, E
+    return y, A, E
 
 
 def generate_core_tensor(ranks):

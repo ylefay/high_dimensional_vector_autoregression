@@ -2,6 +2,11 @@ import jax.numpy as np
 import jax
 from hd_var.operations import vec
 
+"""
+Defining the losses involved in the ALS algorithm, Alg. 1.
+Closed form solution exists for the unconsrained optimization problems.
+"""
+
 
 def lossU1(y_ts, x_ts, X_ts, U1, U2, U3, G_flattened_mode1):
     kronU3U2atG1T = np.kron(U3, U2) @ G_flattened_mode1.T
