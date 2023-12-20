@@ -59,7 +59,7 @@ def from_to_without(frm, to, without, step=1, skip=1, reverse=False, separate=Fa
         return a + b
 
 
-def ttm(X, V, mode=None, transp=False, without=False):
+def ttm(X, V, mode=None, transp=False):
     """
     Tensor times matrix product
 
@@ -107,36 +107,10 @@ def ttm(X, V, mode=None, transp=False, without=False):
     if isinstance(V, np.ndarray):
         Y = ttm_compute(X, V, mode, transp)
     elif isinstance(V, Sequence):
-        dims, vidx = check_multiplication_dims(mode, X.ndim, len(V), vidx=True, without=without)
-        Y = ttm_compute(X, V[vidx[0]], dims[0], transp)
-        for i in range(1, len(dims)):
-            Y = ttm_compute(Y, V[vidx[i]], dims[i], transp)
+        Y = ttm_compute(X, V[0], 0, transp)
+        for i in range(1, X.ndim):
+            Y = ttm_compute(Y, V[i], i, transp)
     return Y
-
-
-def check_multiplication_dims(dims, N, M, vidx=False, without=False):
-    dims = np.array(dims, ndmin=1)
-    if len(dims) == 0:
-        dims = np.arange(N)
-    if without:
-        dims = np.setdiff1d(range(N), dims)
-    if not np.in1d(dims, np.arange(N)).all():
-        raise ValueError('Invalid dimensions')
-    P = len(dims)
-    sidx = np.argsort(dims)
-    sdims = dims[sidx]
-    if vidx:
-        if M > N:
-            raise ValueError('More multiplicants than dimensions')
-        if M != N and M != P:
-            raise ValueError('Invalid number of multiplicants')
-        if P == M:
-            vidx = sidx
-        else:
-            vidx = sdims
-        return sdims, vidx
-    else:
-        return sdims
 
 
 def nvecs(X, n, rank, do_flipsign=True, dtype=float):
@@ -172,19 +146,6 @@ def flipsign(U):
         if U[midx[i], i] < 0:
             U[:, i] = -U[:, i]
     return U
-
-
-def teneye(dim, order):
-    """
-    Create tensor with superdiagonal all one, rest zeros
-    """
-    I = np.zeros(dim ** order)
-    for f in range(dim):
-        idd = f
-        for i in range(1, order):
-            idd = idd + dim ** (i - 1) * (f - 1)
-        I[idd] = 1
-    return I.reshape(np.ones(order) * dim)
 
 
 def ttm_compute(X, V, mode, transp):
@@ -223,11 +184,13 @@ def mode3(X, V):
     return jnp.einsum('ijk,sk->ijs', X, V)
 
 
-def fast_ttm(X, Us):
+def fast_ttm(X, Us, transp=False):
     """
     Similar to ttm_compute for computing
         G = X x_1 U_1 x_2 U_2 x_3 U_3
     """
+    if transp:
+        Us = [U.T for U in Us]
     return mode3(mode2(mode1(X, Us[0]), Us[1]), Us[2])
 
 

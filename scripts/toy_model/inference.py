@@ -8,15 +8,15 @@ from hd_var.operations import rank_tensor
 from hd_var.assumptions import check_ass2, check_ass1
 from functools import partial
 
-INFERENCE_ROUTINES = [partial(admm_compute, pen_l=1.0, pen_k=1.0)]
+INFERENCE_ROUTINES = [als_compute,
+                      partial(admm_compute, pen_l=1.0, pen_k=1.0)]
+INFERENCE_ROUTINES = [als_compute]
 jax.config.update("jax_enable_x64", True)
-jax.config.update("jax_disable_jit", False)
 
 
-@jax.jit
 def criterion(inps):
     prev_A, A, iter, _, _, _, _ = inps
-    return (iter < 1000) & (jnp.linalg.norm(prev_A - A) / jnp.linalg.norm(prev_A) > 1e-2)
+    return (iter < 100) & (jnp.linalg.norm(prev_A - A) / jnp.linalg.norm(prev_A) > 1e-2)
 
 
 def main(inference_routine, dataset, check=False):

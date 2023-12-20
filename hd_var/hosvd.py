@@ -17,22 +17,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
-from .operations import ttm, nvecs
-import numpy.testing as npt
+from .operations import nvecs, ttm
 
 
-def hosvd(A, rank, dims=None, dtype=None, compute_core=True):
+def hosvd(A, rank):
     U = [None for _ in range(A.ndim)]
-    if dims is None:
-        dims = range(A.ndim)
-
-    if dtype is None:
-        dtype = A.dtype
+    dims = range(A.ndim)
     for d in dims:
-        U[d] = np.array(nvecs(A, d, rank[d]), dtype=dtype)
-    if compute_core:
-        core = ttm(A, U, transp=True)
-        npt.assert_allclose(ttm(core, U), A, atol=1e-5)
-        return U, core
-    else:
-        return U
+        U[d] = np.array(nvecs(A, d, rank[d]))
+    core = ttm(A, U, transp=True)
+    return U, core
