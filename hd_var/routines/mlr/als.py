@@ -1,8 +1,8 @@
 import jax.lax
 from hd_var.hosvd import hosvd
 from hd_var.operations import mode_fold, mode_unfold, fast_ttm
-import hd_var.routines.als.losses as losses
-from hd_var.routines.als.utils import constructX
+import hd_var.routines.mlr.losses as losses
+from hd_var.routines.mlr.utils import constructX
 from hd_var.utils import minimize_matrix_input
 import jax.numpy as jnp
 from functools import partial

@@ -7,6 +7,6 @@ def diag_lsq(y, X):
     minimize over diagonal D,
         ||y - X D||_F^2
     The solution is
-        D = diag(<x_i, y_i> / ||x_i||_2^2)
+        D_ii = (y^T X)_ii / (X^T X)_ii
     """
-    return jnp.diag(jnp.sum(X * y, axis=-1) / jnp.linalg.norm(X, axis=-1, ord=2))
+    return jnp.diag(jnp.einsum('li,li->i', y, X) / jnp.einsum('li,li->i', X, X))

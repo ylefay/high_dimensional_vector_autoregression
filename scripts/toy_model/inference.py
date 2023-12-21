@@ -1,7 +1,7 @@
 import numpy as np
 import jax.numpy as jnp
 import jax
-from hd_var.routines.als.als import als_compute
+from hd_var.routines.mlr.als import als_compute
 from hd_var.routines.shorr.admm import admm_compute
 from hd_var.generate import generate_A_given_rank
 from hd_var.operations import rank_tensor
@@ -10,7 +10,7 @@ from functools import partial
 
 INFERENCE_ROUTINES = [als_compute,
                       partial(admm_compute, pen_l=1.0, pen_k=1.0)]
-INFERENCE_ROUTINES = [partial(admm_compute, pen_l=1.0, pen_k=1.0)]
+INFERENCE_ROUTINES = [partial(admm_compute, pen_l=10.0, pen_k=10.0)]
 jax.config.update("jax_enable_x64", True)
 
 

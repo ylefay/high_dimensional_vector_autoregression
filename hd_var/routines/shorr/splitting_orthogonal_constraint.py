@@ -51,3 +51,13 @@ def orthogonal_QP(Y):
                          )
 
     return Pstar
+
+
+def unbalanced_procruste(X, L):
+    """
+    Solution of:
+        argmin_{P} ||X-PL||^2_F s.t. P^TP = I,
+    with P in R^{n x m} and L in R^{m x d}
+    X in R^{n x d}
+    """
+    return orthogonal_QP(X @ L.T)
