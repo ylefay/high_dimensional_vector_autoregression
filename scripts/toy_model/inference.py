@@ -10,12 +10,12 @@ from functools import partial
 
 INFERENCE_ROUTINES = [als_compute,
                       partial(admm_compute, pen_l=1.0, pen_k=1.0)]
-INFERENCE_ROUTINES = [als_compute]
+INFERENCE_ROUTINES = [partial(admm_compute, pen_l=1.0, pen_k=1.0)]
 jax.config.update("jax_enable_x64", True)
 
 
 def criterion(inps):
-    prev_A, A, iter, _, _, _, _ = inps
+    prev_A, A, iter, *_ = inps
     return (iter < 100) & (jnp.linalg.norm(prev_A - A) / jnp.linalg.norm(prev_A) > 1e-2)
 
 

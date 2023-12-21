@@ -146,7 +146,7 @@ def generate_sparse_orthonormal_matrices(case=1):
         h /= np.linalg.norm(h)
         U3[0, 0] = 1
         U3[1:, 1] = g.flatten()
-        U3[3:, 2] = h.flattfen()
+        U3[3:, 2] = h.flatten()
     return U1, U2, U3
 
 
