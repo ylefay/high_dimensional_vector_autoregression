@@ -1,16 +1,16 @@
 import jax.lax
-from hd_var.hosvd import hosvd
-from hd_var.operations import mode_fold, mode_unfold, fast_ttm
-import hd_var.routines.mlr.losses as losses
-from hd_var.routines.mlr.utils import constructX
-from hd_var.utils import minimize_matrix_input
 import jax.numpy as jnp
 from functools import partial
+from hd_var.hosvd import hosvd
+from hd_var.operations import mode_fold, mode_unfold, fast_ttm
+from hd_var.routines.mlr.utils import constructX
+from hd_var.utils import minimize_matrix_input
+import hd_var.routines.mlr.losses as losses
 
 
 def criterion(inps):
-    prev_A, A, iter, _, _, _, _ = inps
-    return (iter < 1000) & (jnp.linalg.norm(prev_A - A) / jnp.linalg.norm(prev_A) > 1e-2)
+    A, prev_A, iter, *_ = inps
+    return (iter < 1000) & (jnp.linalg.norm(A - prev_A) / jnp.linalg.norm(prev_A) > 1e-2)
 
 
 def als_compute(A_init, ranks, y_ts, criterion=criterion):
@@ -26,7 +26,7 @@ def als_compute(A_init, ranks, y_ts, criterion=criterion):
     X_ts = constructX(y_ts, P)
     x_ts = jnp.moveaxis(X_ts.T, -1, 0)
     G_shape = G.shape
-    iter = 0
+    n_iter = 0
     G_flattened_mode1 = mode_fold(G, 0)
 
     mode_unfold_p = partial(mode_unfold, mode=0, shape=G_shape)
@@ -36,9 +36,9 @@ def als_compute(A_init, ranks, y_ts, criterion=criterion):
     lossU4 = partial(losses.lossU4, y_ts=y_ts, x_ts=x_ts, X_ts=X_ts)
 
     def iter_fun(inps):
-        A, prev_A, iter, U1, U2, U3, G_flattened_mode1 = inps
+        A, prev_A, n_iter, U1, U2, U3, G_flattened_mode1 = inps
         prev_A = A
-        iter += 1
+
         U1, l1 = minimize_matrix_input(
             lambda _U1: lossU1(U1=_U1, U2=U2, U3=U3, G_flattened_mode1=G_flattened_mode1), U1)
         U2, l2 = minimize_matrix_input(
@@ -48,12 +48,14 @@ def als_compute(A_init, ranks, y_ts, criterion=criterion):
         G_flattened_mode1, l4 = minimize_matrix_input(
             lambda _G_flattened_mode1: lossU4(U1=U1, U2=U2, U3=U3, G_flattened_mode1=_G_flattened_mode1),
             G_flattened_mode1)
-        G = mode_unfold_p(G_flattened_mode1)
-        A = fast_ttm(G, (U1, U2, U3))
-        return A, prev_A, iter, U1, U2, U3, G_flattened_mode1
 
-    A, _, _, _, _, _, _ = jax.lax.while_loop(criterion, iter_fun,
-                                             (A, jnp.zeros_like(A), iter, U1, U2, U3, G_flattened_mode1))
+        G = mode_unfold_p(G_flattened_mode1)
+
+        A = fast_ttm(G, (U1, U2, U3))
+        return A, prev_A, n_iter + 1, U1, U2, U3, G_flattened_mode1
+
+    A, *_ = jax.lax.while_loop(criterion, iter_fun,
+                               (A, jnp.zeros_like(A), n_iter, U1, U2, U3, G_flattened_mode1))
     Us, G = hosvd(A, ranks)
     return G, A, Us
 

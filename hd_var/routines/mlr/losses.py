@@ -29,7 +29,7 @@ def lossU2(y_ts, x_ts, X_ts, U1, U2, U3, G_flattened_mode1):
 
     def _lossU2(y_t, X_t):
         _ = y_t - U1atG1 @ np.kron((X_t @ U3).T, id) @ vecU2T
-        norms = np.mean(_ ** 2, axis=-1)
+        norms = np.sum(_ ** 2, axis=-1)
         return norms
 
     return np.mean(jax.vmap(_lossU2, in_axes=(0, 0))(y_ts.T, X_ts))

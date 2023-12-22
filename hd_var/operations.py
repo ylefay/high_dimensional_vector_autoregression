@@ -11,7 +11,7 @@ def mode_fold(tensor, mode):
     """
     Flatten a tensor along its k-th mode.
     """
-    return np.moveaxis(tensor, mode, 0).reshape(tensor.shape[mode], -1, order='F')
+    return jnp.moveaxis(tensor, mode, 0).reshape(tensor.shape[mode], -1, order='F')
 
 
 def mode_unfold(tensor, mode, shape):
