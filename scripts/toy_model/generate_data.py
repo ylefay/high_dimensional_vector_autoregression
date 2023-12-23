@@ -9,7 +9,7 @@ def main(check=False):
     A = np.array([[[0.5, 0.0, 0.0], [0.25, 0.0, 0.0]], [[0.1, 0.05, -0.05], [0.6, -0.2, 0.1]]])  # 2, 3 WORKS
     A = np.array([[[0.5], [0.25]], [[0.1], [0.6]]])  # 2,1 WORKS
     A = np.array([[[0.5, 0.0], [0.25, 0.0]], [[0.1, 0.0], [0.6, -0.2]]])  # 2, 2 WORKS
-    A = generate_A_given_rank(9, 5, [3, 2, 2])
+    A = generate_A_given_rank(9, 5, [3, 2, 1])
     if check:
         # check_ass1(A)
         check_ass2(A)

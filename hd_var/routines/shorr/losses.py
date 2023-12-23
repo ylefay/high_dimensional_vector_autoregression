@@ -54,30 +54,3 @@ def loss_U3(U3, y, r3, U1, U2, X_ts, G_flattened_mode1):
 
 def loss_G_mode1(G_flattened_mode1, y, T, N, x_ts_bis, U1, U2, U3):
     return loss(y, factor_G_mode1(T, N, x_ts_bis, U1, U2, U3), G_flattened_mode1)
-
-
-def penalized_loss_G(G_flattened_mode1, y_ts, x_ts, Us, Ds, Vs, Cs_flattened, rhos, ranks):
-    """
-    ||G_(i)||_F^2 does not depend on i, hence:
-    pen = rho_1||G_(1)-D_1 V_1^T||_F^2 + rho_2||G_(2)-D_2 V_2^T||_F^2 + rho_3||G_(3)-D_3 V_3^T||_F^2
-    = (rho_1+rho_2+rho_3) ||G_(1)||_F^2 + (rho_1 Tr(G_(2) A_1) + rho_2 Tr(G_(2)A_2) + rho_3 Tr(G_(3)A_3))
-    + cst
-    with A_1 = -2(D_1V_1^T)^T = -2V_1D_1, A_2 = -2V_2D_2, A_3 = -2V_3D_3
-    """
-    U1, U2, U3 = Us
-    rho1, rho2, rho3 = rhos
-    C1_flattened_mode1, C2_flattened_mode2, C3_flattened_mode3 = Cs_flattened
-    D1, D2, D3 = Ds
-    V1, V2, V3 = Vs
-    G = mode_unfold(G_flattened_mode1, 0, ranks)
-    G_flattened_mode2 = mode_fold(G, 1)
-    G_flattened_mode3 = mode_fold(G, 2)
-
-    non_penalized_loss = lossU4(y_ts, x_ts, None, U1, U2, U3,
-                                G_flattened_mode1)  # for some reason I had to use lossU4 instead of loss_G_mode1 for optimizing (otherwise nan...)
-    penalization = (rho1 + rho2 + rho3) * jnp.linalg.norm(G_flattened_mode1, ord='fro') ** 2 \
-                   + 2 * (rho1 * jnp.trace(G_flattened_mode1 @ (C1_flattened_mode1.T - V1 @ D1)) + \
-                          rho2 * jnp.trace(G_flattened_mode2 @ (C2_flattened_mode2.T - V2 @ D2)) + \
-                          rho3 * jnp.trace(G_flattened_mode3 @ (C3_flattened_mode3.T - V3 @ D3))
-                          )
-    return non_penalized_loss + penalization

@@ -4,13 +4,12 @@ from hd_var.routines.shorr.splitting_orthogonal_constraint import orthogonal_QP
 from hd_var.operations import unvec
 
 
-def subroutine(y, X, B, pen_l, T, pen_k=1, max_iter=5):
+def subroutine(y, X, B, pen_l, pen_k=1, max_iter=5):
     """
     ADMM subroutine for sparse and orthogonal regression as described
     in Algorithm 3.
-    min_{B} {1 / T ||y - X vec(B)||_2^2 + lambda ||B||_1}, s.t. B^T B = I,
-    where y = [y_1^T, ..., y_n^T] in R^(n x m)
-    In our case, we have n = T * N
+    min_{B} {1 / n ||y - X vec(B)||_2^2 + lambda ||B||_1}, s.t. B^T B = I,
+    where y = [y_1^T, ..., y_n^T] in R^n
     """
     n = y.shape[0]
     dim = B.shape[0] * B.shape[1]
@@ -27,14 +26,14 @@ def subroutine(y, X, B, pen_l, T, pen_k=1, max_iter=5):
                 jnp.linalg.norm(reg.reshape(B.shape) - W) / jnp.linalg.norm(W) > 1e-3)) | n_iter == 0
 
     def criterion_for_orthogonal_iter(inps):
-        n_iter, reg, Q, _ = inps
+        n_iter, B, Q, _ = inps
         return ((n_iter < max_iter) & (
-                jnp.linalg.norm(reg.reshape(*B.shape) - Q) / jnp.linalg.norm(Q) > 1e-3)) | n_iter == 0
+                jnp.linalg.norm(B - Q) / jnp.linalg.norm(Q) > 1e-3)) | n_iter == 0
 
     def iter_fun(inps):
         """
         Ref: A Splitting Method for Orthogonality Constrained Problems
-
+        SOC Algorithm 2. for convex optimization under orthogonal constraint.
         """
         n_iter, reg, W, M = inps
         gamma = 1
