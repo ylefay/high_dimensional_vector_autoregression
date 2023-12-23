@@ -80,4 +80,4 @@ def penalized_loss_G(G_flattened_mode1, y_ts, x_ts, Us, Ds, Vs, Cs_flattened, rh
                           rho2 * jnp.trace(G_flattened_mode2 @ (C2_flattened_mode2.T - V2 @ D2)) + \
                           rho3 * jnp.trace(G_flattened_mode3 @ (C3_flattened_mode3.T - V3 @ D3))
                           )
-    return non_penalized_loss + penalization
+    return non_penalized_loss + 0 * penalization

@@ -43,7 +43,7 @@ def admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=None, rhos=(1.0, 1.0, 1.
         pen_k = pen_l
 
     mode_unfold_p = partial(mode_unfold, mode=0, shape=G_shape)
-    subroutine = partial(sor.subroutine, y=y_ts_reshaped, pen_k=pen_k, max_iter=iter_sor)
+    subroutine = partial(sor.subroutine, T=T, y=y_ts_reshaped, pen_k=pen_k, max_iter=iter_sor)
     fun_factor_U1 = partial(losses.factor_U1, T=T, N=N, x_ts_bis=x_ts_bis)
     fun_factor_U2 = partial(losses.factor_U2, r2=ranks[1], X_ts=X_ts)
     fun_factor_U3 = partial(losses.factor_U3, r3=ranks[2], X_ts=X_ts)
@@ -56,14 +56,14 @@ def admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=None, rhos=(1.0, 1.0, 1.
         G_flattened_mode1 = mode_fold(G, 0)
 
         factor_U1 = fun_factor_U1(U2=U2, U3=U3, G_flattened_mode1=G_flattened_mode1)
+        jax.debug.print("l1={l1}", l1=losses.loss_U1(U1, y_ts.T, T, N, x_ts_bis, U2, U3, G_flattened_mode1))
         factor_U1 = factor_U1.reshape((-1, factor_U1.shape[-1]))
         U1 = subroutine(B=U1, X=factor_U1, pen_l=pen_l * jnp.linalg.norm(U2, ord=1) * jnp.linalg.norm(U3, ord=1))
-        # jax.debug.print("l1={l1}", l1=losses.loss_U1(U1, y_ts.T, T, N, x_ts_bis, U2, U3, G_flattened_mode1))
         factor_U2 = fun_factor_U2(U1=U1, U3=U3, G_flattened_mode1=G_flattened_mode1)
         factor_U2 = factor_U2.reshape((-1, factor_U2.shape[-1]))
+        jax.debug.print("l2={l1}", l1=losses.loss_U2(U2, y_ts.T, ranks[1], X_ts, U1, U3, G_flattened_mode1))
         U2 = subroutine(B=U2.T, X=factor_U2,
                         pen_l=pen_l * jnp.linalg.norm(U1, ord=1) * jnp.linalg.norm(U3, ord=1)).T
-        # jax.debug.print("l2={l1}", l1=losses.loss_U2(U2, y_ts.T, ranks[1], X_ts, U1, U3, G_flattened_mode1))
         factor_U3 = fun_factor_U3(U1=U1, U2=U2, G_flattened_mode1=G_flattened_mode1)
         factor_U3 = factor_U3.reshape((-1, factor_U3.shape[-1]))
         U3 = subroutine(B=U3, X=factor_U3, pen_l=pen_l * jnp.linalg.norm(U1, ord=1) * jnp.linalg.norm(U2, ord=1))
@@ -104,7 +104,9 @@ def admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=None, rhos=(1.0, 1.0, 1.
           jnp.eye(ranks[0] * ranks[1], ranks[2]))
     Cs_flattened = (jnp.ones((ranks[0], ranks[1] * ranks[2])), jnp.ones((ranks[1], ranks[0] * ranks[2])),
                     jnp.ones((ranks[2], ranks[0] * ranks[1])))
-
+    """inps = (A, jnp.zeros_like(A), 0, Us, G, Ds, Vs, Cs_flattened)
+    while criterion(inps):
+        inps = iter_fun(inps)"""
     A, *_ = jax.lax.while_loop(criterion, iter_fun, (A, jnp.zeros_like(A), 0, Us, G, Ds, Vs, Cs_flattened))
     Us, G = hosvd(A, ranks)
     return G, A, Us
