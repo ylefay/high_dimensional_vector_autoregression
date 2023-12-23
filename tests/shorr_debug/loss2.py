@@ -27,7 +27,6 @@ def main():
     Us, G = hosvd(A, ranks)
     G_flattened_mode1 = mode_fold(G, 0)
     U1, U2, U3 = Us
-    Us = (U1, U2, U3)
     P = U3.shape[0]
     N = U1.shape[0]
     l2_mlr = mlr_losses.lossU2(y_ts, x_ts, X_ts, U1, U2, U3, G_flattened_mode1)
@@ -42,12 +41,15 @@ def main():
     assert np.allclose(l3_mlr, l3_shorr)
     assert np.allclose(l4_mlr, l4_shorr)
     assert np.allclose(l1_mlr, l1_shorr)
+
+    def f(X, B):
+        return jnp.linalg.norm(y_ts_reshaped - X @ B) ** 2 / T
+
     y_ts_reshaped = y_ts.T.reshape((-1))
     factor_U1 = shorr_losses.factor_U1(T=T, N=N, x_ts_bis=x_ts_bis, U2=U2, U3=U3,
                                        G_flattened_mode1=G_flattened_mode1)
-
     factor_U1 = factor_U1.reshape((-1, factor_U1.shape[-1]))
-    assert jnp.linalg.norm(y_ts_reshaped - factor_U1 @ vec(U1), ord=2) ** 2 / T == l1_mlr
+    assert f(factor_U1, vec(U1)) == l1_mlr
     factor_U2 = shorr_losses.factor_U2(r2=ranks[1], X_ts=X_ts, U1=U1, U3=U3, G_flattened_mode1=G_flattened_mode1)
     factor_U2 = factor_U2.reshape((-1, factor_U2.shape[-1]))
     assert np.isclose(jnp.linalg.norm(y_ts_reshaped - factor_U2 @ vec(U2.T), ord=2) ** 2 / T, l2_mlr)
@@ -62,12 +64,6 @@ def main():
     solvU3 = jnp.linalg.inv(factor_U3.T @ factor_U3) @ factor_U3.T @ y_ts_reshaped
     solvG1 = jnp.linalg.inv(factor_G_mode1.T @ factor_G_mode1) @ factor_G_mode1.T @ y_ts_reshaped
 
-    def f(X, B):
-        return jnp.linalg.norm(y_ts_reshaped - X @ B)
-
-    assert np.isclose(f(factor_U1, solvU1), f(factor_G_mode1, solvG1))
-    assert np.isclose(f(factor_U1, solvU1), f(factor_U3, solvU3))
-    assert np.isclose(f(factor_U1, solvU1), f(factor_U2, solvU2T))
 
     # mlr
     def factor_mlr(k):

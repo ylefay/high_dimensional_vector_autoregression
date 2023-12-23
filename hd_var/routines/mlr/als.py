@@ -2,7 +2,7 @@ import jax.lax
 import jax.numpy as jnp
 from functools import partial
 from hd_var.hosvd import hosvd
-from hd_var.operations import mode_fold, mode_unfold, fast_ttm
+from hd_var.operations import mode_fold, mode_unfold, fast_ttm, unvec
 from hd_var.routines.mlr.utils import constructX
 from hd_var.utils import minimize_matrix_input
 import hd_var.routines.mlr.losses as losses
@@ -93,20 +93,24 @@ def als_compute_closed_form(A_init, ranks, y_ts, criterion=criterion):
 
         factor_U1 = fun_factor_U1(U2=U2, U3=U3, G_flattened_mode1=G_flattened_mode1)
         factor_U1 = factor_U1.reshape((-1, factor_U1.shape[-1]))
-        U1 = ((jnp.linalg.inv(factor_U1.T @ factor_U1) @ factor_U1.T @ y_ts_reshaped).reshape(U1.shape)).T
+        vU1 = (jnp.linalg.pinv(factor_U1.T @ factor_U1) @ factor_U1.T @ y_ts_reshaped)
+        U1 = unvec(vU1, U1.shape)
+
         factor_U2 = fun_factor_U2(U1=U1, U3=U3, G_flattened_mode1=G_flattened_mode1)
         factor_U2 = factor_U2.reshape((-1, factor_U2.shape[-1]))
-        U2 = ((jnp.linalg.inv(factor_U2.T @ factor_U2) @ factor_U2.T @ y_ts_reshaped).reshape(U2.T.shape))
+        vU2T = (jnp.linalg.pinv(factor_U2.T @ factor_U2) @ factor_U2.T @ y_ts_reshaped)
+        U2 = unvec(vU2T, (U2.shape[1], U2.shape[0])).T
 
         factor_U3 = fun_factor_U3(U1=U1, U2=U2, G_flattened_mode1=G_flattened_mode1)
         factor_U3 = factor_U3.reshape((-1, factor_U3.shape[-1]))
-        U3 = ((jnp.linalg.inv(factor_U3.T @ factor_U3) @ factor_U3.T @ y_ts_reshaped).reshape(U3.shape)).T
+        vU3 = (jnp.linalg.pinv(factor_U3.T @ factor_U3) @ factor_U3.T @ y_ts_reshaped)
+        U3 = unvec(vU3, U3.shape)
 
         factor_G_mode1 = fun_factor_G(U1=U1, U2=U2, U3=U3)
         factor_G_mode1 = factor_G_mode1.reshape((-1, factor_G_mode1.shape[-1]))
-        G_flattened_mode1 = ((
-                jnp.linalg.inv(factor_G_mode1.T @ factor_G_mode1) @ factor_G_mode1.T @ y_ts_reshaped).reshape(
-            G_flattened_mode1.shape))
+        vG_flattened_mode1 = (
+                jnp.linalg.pinv(factor_G_mode1.T @ factor_G_mode1) @ factor_G_mode1.T @ y_ts_reshaped)
+        G_flattened_mode1 = unvec(vG_flattened_mode1, G_flattened_mode1.shape)
 
         G = mode_unfold_p(G_flattened_mode1)
 
