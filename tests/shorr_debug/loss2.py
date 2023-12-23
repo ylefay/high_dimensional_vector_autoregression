@@ -53,6 +53,9 @@ def main():
     factor_U3 = shorr_losses.factor_U3(r3=ranks[2], X_ts=X_ts, U1=U1, U2=U2, G_flattened_mode1=G_flattened_mode1)
     factor_U3 = factor_U3.reshape((-1, factor_U3.shape[-1]))
     assert np.isclose(jnp.linalg.norm(y_ts_reshaped - factor_U3 @ vec(U3), ord=2) ** 2 / T, l3_mlr)
+    factor_G_mode1 = shorr_losses.factor_G_mode1(T=T, N=N, x_ts_bis=x_ts_bis, U1=U1, U2=U2, U3=U3)
+    factor_G_mode1 = factor_G_mode1.reshape((-1, factor_G_mode1.shape[-1]))
+    assert np.isclose(jnp.linalg.norm(y_ts_reshaped - factor_G_mode1 @ vec(G_flattened_mode1), ord=2) ** 2 / T, l4_mlr)
 
     # mlr
     def factor_mlr(k):
