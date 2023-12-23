@@ -19,6 +19,7 @@ def main():
     N, T = y_ts.shape
     P = A.shape[-1]  # cheating
     ranks = rank_tensor(A)  # cheating
+    print(ranks)
     A = generate_A_given_rank(N, P, ranks)
     X_ts = constructX(y_ts, P)
     x_ts = jnp.moveaxis(X_ts.T, -1, 0)
@@ -56,6 +57,17 @@ def main():
     factor_G_mode1 = shorr_losses.factor_G_mode1(T=T, N=N, x_ts_bis=x_ts_bis, U1=U1, U2=U2, U3=U3)
     factor_G_mode1 = factor_G_mode1.reshape((-1, factor_G_mode1.shape[-1]))
     assert np.isclose(jnp.linalg.norm(y_ts_reshaped - factor_G_mode1 @ vec(G_flattened_mode1), ord=2) ** 2 / T, l4_mlr)
+    solvU1 = jnp.linalg.inv(factor_U1.T @ factor_U1) @ factor_U1.T @ y_ts_reshaped
+    solvU2T = jnp.linalg.inv(factor_U2.T @ factor_U2) @ factor_U2.T @ y_ts_reshaped
+    solvU3 = jnp.linalg.inv(factor_U3.T @ factor_U3) @ factor_U3.T @ y_ts_reshaped
+    solvG1 = jnp.linalg.inv(factor_G_mode1.T @ factor_G_mode1) @ factor_G_mode1.T @ y_ts_reshaped
+
+    def f(X, B):
+        return jnp.linalg.norm(y_ts_reshaped - X @ B)
+
+    assert np.isclose(f(factor_U1, solvU1), f(factor_G_mode1, solvG1))
+    assert np.isclose(f(factor_U1, solvU1), f(factor_U3, solvU3))
+    assert np.isclose(f(factor_U1, solvU1), f(factor_U2, solvU2T))
 
     # mlr
     def factor_mlr(k):

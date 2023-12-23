@@ -10,7 +10,7 @@ from functools import partial
 
 INFERENCE_ROUTINES = [als_compute,
                       partial(admm_compute, pen_l=4.0, pen_k=5.0, rhos=(0.01, 0.01, 0.01))]  # ok for simple model
-INFERENCE_ROUTINES = [als_compute_closed_form]
+INFERENCE_ROUTINES = [als_compute]
 jax.config.update("jax_enable_x64", True)
 
 
@@ -35,7 +35,7 @@ def main(inference_routine, dataset, check=False):
 
 if __name__ == '__main__':
     for inference_routine in INFERENCE_ROUTINES:
-        dataset = np.load(f'./data/var_62_bis_2000_10_5.npz')
+        dataset = np.load(f'./data/var_10000_2_3.npz')
         res, A = main(inference_routine, dataset)
         print(f'A_true:{A}, A_estimated:{res[1]}')
         print(f'rel error:{np.linalg.norm(res[1] - A) / np.linalg.norm(A)}')

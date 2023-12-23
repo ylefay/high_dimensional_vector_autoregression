@@ -11,7 +11,7 @@ import hd_var.routines.shorr.losses as shorr_losses
 
 def criterion(inps):
     A, prev_A, iter, *_ = inps
-    return (iter < 1000) & (jnp.linalg.norm(A - prev_A) / jnp.linalg.norm(prev_A) > 1e-2)
+    return (iter < 1000) & (jnp.linalg.norm(A - prev_A) / jnp.linalg.norm(prev_A) > 1e-3)
 
 
 def als_compute(A_init, ranks, y_ts, criterion=criterion):
@@ -55,8 +55,9 @@ def als_compute(A_init, ranks, y_ts, criterion=criterion):
         A = fast_ttm(G, (U1, U2, U3))
         return A, prev_A, n_iter + 1, U1, U2, U3, G_flattened_mode1
 
+    inps = (A, jnp.zeros_like(A), n_iter, U1, U2, U3, G_flattened_mode1)
     A, *_ = jax.lax.while_loop(criterion, iter_fun,
-                               (A, jnp.zeros_like(A), n_iter, U1, U2, U3, G_flattened_mode1))
+                               inps)
     Us, G = hosvd(A, ranks)
     return G, A, Us
 
@@ -71,12 +72,11 @@ def als_compute_closed_form(A_init, ranks, y_ts, criterion=criterion):
     Us, G = hosvd(A, ranks)
     U1, U2, U3 = Us
     P = U3.shape[0]
-    T = y_ts.shape[1]
-    N = U1.shape[0]
+    N, T = y_ts.shape
     X_ts = constructX(y_ts, P)
     x_ts = jnp.moveaxis(X_ts.T, -1, 0)
     x_ts_bis = x_ts.reshape(x_ts.shape[0], -1)
-    y_ts_reshaped = y_ts.T.reshape(-1)
+    y_ts_reshaped = y_ts.T.reshape((-1))
     G_shape = G.shape
     n_iter = 0
     G_flattened_mode1 = mode_fold(G, 0)
@@ -93,27 +93,30 @@ def als_compute_closed_form(A_init, ranks, y_ts, criterion=criterion):
 
         factor_U1 = fun_factor_U1(U2=U2, U3=U3, G_flattened_mode1=G_flattened_mode1)
         factor_U1 = factor_U1.reshape((-1, factor_U1.shape[-1]))
-        U1 = (jnp.linalg.pinv((factor_U1.T @ factor_U1)) @ factor_U1.T @ y_ts_reshaped).reshape(U1.shape)
+        U1 = ((jnp.linalg.inv(factor_U1.T @ factor_U1) @ factor_U1.T @ y_ts_reshaped).reshape(U1.shape)).T
         factor_U2 = fun_factor_U2(U1=U1, U3=U3, G_flattened_mode1=G_flattened_mode1)
         factor_U2 = factor_U2.reshape((-1, factor_U2.shape[-1]))
-        U2 = ((jnp.linalg.pinv((factor_U2.T @ factor_U2)) @ factor_U2.T @ y_ts_reshaped).reshape(U2.T.shape)).T
+        U2 = ((jnp.linalg.inv(factor_U2.T @ factor_U2) @ factor_U2.T @ y_ts_reshaped).reshape(U2.T.shape))
 
         factor_U3 = fun_factor_U3(U1=U1, U2=U2, G_flattened_mode1=G_flattened_mode1)
         factor_U3 = factor_U3.reshape((-1, factor_U3.shape[-1]))
-        U3 = (jnp.linalg.pinv((factor_U3.T @ factor_U3)) @ factor_U3.T @ y_ts_reshaped).reshape(U3.shape)
+        U3 = ((jnp.linalg.inv(factor_U3.T @ factor_U3) @ factor_U3.T @ y_ts_reshaped).reshape(U3.shape)).T
 
         factor_G_mode1 = fun_factor_G(U1=U1, U2=U2, U3=U3)
         factor_G_mode1 = factor_G_mode1.reshape((-1, factor_G_mode1.shape[-1]))
-        G_flattened_mode1 = (
-                jnp.linalg.pinv((factor_G_mode1.T @ factor_G_mode1)) @ factor_G_mode1.T @ y_ts_reshaped).reshape(
-            G_flattened_mode1.shape)
+        G_flattened_mode1 = ((
+                jnp.linalg.inv(factor_G_mode1.T @ factor_G_mode1) @ factor_G_mode1.T @ y_ts_reshaped).reshape(
+            G_flattened_mode1.shape))
 
         G = mode_unfold_p(G_flattened_mode1)
 
         A = fast_ttm(G, (U1, U2, U3))
         return A, prev_A, n_iter + 1, U1, U2, U3, G_flattened_mode1
 
-    A, *_ = jax.lax.while_loop(criterion, iter_fun,
-                               (A, jnp.zeros_like(A), n_iter, U1, U2, U3, G_flattened_mode1))
+    inps = (A, jnp.zeros_like(A), n_iter, U1, U2, U3, G_flattened_mode1)
+    while criterion(inps):
+        inps = iter_fun(inps)
+    A, *_ = inps
+    # A, *_ = jax.lax.while_loop(criterion, iter_fun,inps)
     Us, G = hosvd(A, ranks)
     return G, A, Us
