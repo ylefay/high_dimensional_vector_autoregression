@@ -11,7 +11,7 @@ import hd_var.routines.shorr.losses as shorr_losses
 
 def criterion(inps):
     A, prev_A, iter, *_ = inps
-    return (iter < 1000) & (jnp.linalg.norm(A - prev_A) / jnp.linalg.norm(prev_A) > 1e-3)
+    return (iter < 1000) & (jnp.linalg.norm(A - prev_A) / jnp.linalg.norm(prev_A) > 1e-5)
 
 
 def als_compute(A_init, ranks, y_ts, criterion=criterion):

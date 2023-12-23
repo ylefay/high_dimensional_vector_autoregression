@@ -1,6 +1,7 @@
 import jax.numpy as jnp
 import jax
 from hd_var.routines.shorr.splitting_orthogonal_constraint import orthogonal_QP
+from hd_var.operations import unvec
 
 
 def subroutine(y, X, B, pen_l, T, pen_k=1, max_iter=5):
@@ -13,8 +14,8 @@ def subroutine(y, X, B, pen_l, T, pen_k=1, max_iter=5):
     """
     n = y.shape[0]
     dim = B.shape[0] * B.shape[1]
-    reg = (jnp.linalg.inv(X.T @ X) @ (X.T @ y))
-    init_W = reg.reshape(*B.shape)
+    vecB = (jnp.linalg.inv(X.T @ X) @ (X.T @ y))
+    init_W = unvec(vecB, B.shape)
     init_M = jnp.zeros_like(B)
     gamma = 1
     Gram = jnp.linalg.inv(X.T @ X / n + pen_k * jnp.eye(dim) + gamma * jnp.eye(dim))
@@ -23,8 +24,7 @@ def subroutine(y, X, B, pen_l, T, pen_k=1, max_iter=5):
     def criterion(inps):
         n_iter, reg, W, _ = inps
         return ((n_iter < max_iter) & (
-                jnp.linalg.norm(reg.reshape(B.shape) - W, ord='fro') / jnp.linalg.norm(W,
-                                                                                       ord='fro') > 1e-3)) | n_iter == 0
+                jnp.linalg.norm(reg.reshape(B.shape) - W) / jnp.linalg.norm(W) > 1e-3)) | n_iter == 0
 
     def criterion_for_orthogonal_iter(inps):
         n_iter, reg, Q, _ = inps
@@ -32,6 +32,10 @@ def subroutine(y, X, B, pen_l, T, pen_k=1, max_iter=5):
                 jnp.linalg.norm(reg.reshape(*B.shape) - Q) / jnp.linalg.norm(Q) > 1e-3)) | n_iter == 0
 
     def iter_fun(inps):
+        """
+        Ref: A Splitting Method for Orthogonality Constrained Problems
+
+        """
         n_iter, reg, W, M = inps
         gamma = 1
         Q = reg.reshape(B.shape)
@@ -39,15 +43,14 @@ def subroutine(y, X, B, pen_l, T, pen_k=1, max_iter=5):
         WmM = pen_k * (W - M).reshape(dim, )
 
         def orthogonal_iter_fun(inps):
-            n_iter, reg, Q, Z = inps
-            reg = Gram @ (Xyprod + WmM + gamma * (Q - Z).reshape(dim, ))
-            Q = orthogonal_QP(reg.reshape(B.shape) + Z)
-            Z = Z + reg.reshape(B.shape) - Q
-            return n_iter + 1, reg, Q, Z
+            n_iter, _, Q, Z = inps
+            _B = (Gram @ (Xyprod + WmM + gamma * (Q - Z).reshape(dim, ))).reshape(B.shape)
+            Q = orthogonal_QP(_B + Z)
+            Z = Z + _B - Q
+            return n_iter + 1, _B, Q, Z
 
-        inps = (0, reg, Q, Z)
-        _, reg, *_ = jax.lax.while_loop(criterion_for_orthogonal_iter, orthogonal_iter_fun, inps)
-        new_B = reg.reshape(B.shape)
+        inps = (0, Q, Q, Z)
+        _, new_B, *_ = jax.lax.while_loop(criterion_for_orthogonal_iter, orthogonal_iter_fun, inps)
 
         # explicit soft thresholding
         new_W = ((new_B + M - 2 * pen_l / pen_k) > 0) * (W + M - 2 * pen_l / pen_k) - (
@@ -56,6 +59,6 @@ def subroutine(y, X, B, pen_l, T, pen_k=1, max_iter=5):
         new_M = M + new_B - new_W
         return n_iter + 1, reg, new_W, new_M
 
-    inps = (0, reg, init_W, init_M)
+    inps = (0, vecB, init_W, init_M)
     _, _, W, _ = jax.lax.while_loop(criterion, iter_fun, inps)
     return W
