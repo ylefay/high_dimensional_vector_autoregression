@@ -199,3 +199,10 @@ def vec(X):
     Vectorization of a matrix.
     """
     return (X.T).reshape(-1, )
+
+
+def unvec(vecX, shape):
+    """
+    Invert operation
+    """
+    return vecX.reshape((shape[1], shape[0])).T
