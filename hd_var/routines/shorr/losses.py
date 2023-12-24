@@ -1,7 +1,5 @@
 import jax.numpy as jnp
-
-from hd_var.operations import vec, mode_fold, mode_unfold
-from hd_var.routines.mlr.losses import lossU4
+from hd_var.operations import vec
 
 
 def loss(y, X, B):

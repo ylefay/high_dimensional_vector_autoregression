@@ -4,7 +4,7 @@ from hd_var.operations import vec
 
 """
 Defining the losses involved in the ALS algorithm, Alg. 1.
-Closed form solution exists for the unconsrained optimization problems.
+Simple LS regression in the unconstrained optimization problems.
 """
 
 

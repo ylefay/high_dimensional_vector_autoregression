@@ -10,11 +10,11 @@ import jax.lax
 
 
 def criterion(inps):
-    A, prev_A, iter, *_ = inps
-    return (iter < 1000) & (jnp.linalg.norm(A - prev_A) / jnp.linalg.norm(prev_A) > 1e-5)
+    A, prev_A, n_iter, *_ = inps
+    return (n_iter < 1000) & (jnp.linalg.norm(A - prev_A) / jnp.linalg.norm(prev_A) > 1e-5)
 
 
-def admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=1.0, criterion=criterion, iter_sor=10):
+def admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=1.0, criterion=criterion, iter_sor=5):
     """
     See Algorithm 2. in the paper.
     Compute the SHORR estimate.
@@ -32,11 +32,11 @@ def admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=1.0, criterion=criterion
     X_ts = constructX(y_ts, P)
     x_ts = jnp.moveaxis(X_ts.T, -1, 0)
     x_ts_bis = x_ts.reshape(x_ts.shape[0], -1)
-    y_ts_reshaped = y_ts.T.reshape((-1))  # TxN
+    y_ts_reshaped = y_ts.T.reshape((-1,))
     if pen_l is None:
         pen_l = lambda_optimal(N, P, T, jnp.eye(N))  # assuming unit covariance
 
-    pen_l *= pen_l / N  # We reshape y_ts_reshaped to be of shape (T*N,1) instead of (T,N), thus the factor in the OLS loss is 1/(T * N) instead of 1/T
+    pen_l *= 1 / N  # We reshape y_ts_reshaped to be of shape (T*N,1) instead of (T,N), thus the factor in the OLS loss is 1/(T * N) instead of 1/T
 
     subroutine = partial(sor.subroutine, y=y_ts_reshaped, max_iter=iter_sor)
     fun_factor_U1 = partial(losses.factor_U1, T=T, N=N, x_ts_bis=x_ts_bis)
@@ -54,7 +54,8 @@ def admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=1.0, criterion=criterion
 
         factor_U1 = fun_factor_U1(U2=U2, U3=U3, G_flattened_mode1=G_flattened_mode1)
         factor_U1 = factor_U1.reshape((-1, factor_U1.shape[-1]))
-        U1 = subroutine(B=U1, X=factor_U1, pen_l=pen_l * jnp.linalg.norm(U2, ord=1) * jnp.linalg.norm(U3, ord=1),
+        U1 = subroutine(B=U1, X=factor_U1,
+                        pen_l=pen_l * jnp.linalg.norm(U2, ord=1) * jnp.linalg.norm(U3, ord=1),
                         pen_k=pen_k)
         factor_U2 = fun_factor_U2(U1=U1, U3=U3, G_flattened_mode1=G_flattened_mode1)
         factor_U2 = factor_U2.reshape((-1, factor_U2.shape[-1]))
@@ -62,7 +63,8 @@ def admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=1.0, criterion=criterion
                         pen_l=pen_l * jnp.linalg.norm(U1, ord=1) * jnp.linalg.norm(U3, ord=1), pen_k=pen_k).T
         factor_U3 = fun_factor_U3(U1=U1, U2=U2, G_flattened_mode1=G_flattened_mode1)
         factor_U3 = factor_U3.reshape((-1, factor_U3.shape[-1]))
-        U3 = subroutine(B=U3, X=factor_U3, pen_l=pen_l * jnp.linalg.norm(U1, ord=1) * jnp.linalg.norm(U2, ord=1),
+        U3 = subroutine(B=U3, X=factor_U3,
+                        pen_l=pen_l * jnp.linalg.norm(U1, ord=1) * jnp.linalg.norm(U2, ord=1),
                         pen_k=pen_k)
 
         factor_G_mode1 = fun_factor_G_mode1(U1=U1, U2=U2, U3=U3)
@@ -76,6 +78,9 @@ def admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=1.0, criterion=criterion
         return A, prev_A, n_iter + 1, Us, G, pen_k
 
     inps = (A, jnp.zeros_like(A), 0, Us, G, pen_k)
+    # while criterion(inps):
+    #    inps = iter_fun(inps)
+    # A, *_ = inps
     A, *_ = jax.lax.while_loop(criterion, iter_fun, inps)
     Us, G = hosvd(A, ranks)
     return G, A, Us
