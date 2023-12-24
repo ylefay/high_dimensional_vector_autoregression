@@ -9,12 +9,13 @@ from hd_var.assumptions import check_ass2, check_ass1
 from functools import partial
 
 INFERENCE_ROUTINES = [als_compute_closed_form, als_compute, admm_compute]
+INFERENCE_ROUTINES = [admm_compute]
 jax.config.update("jax_enable_x64", True)
 
 
 def criterion(inps):
     A, prev_A, iter, *_ = inps
-    return (iter < 1000) & (jnp.linalg.norm(prev_A - A) / jnp.linalg.norm(prev_A) > 1e-3)
+    return (iter < 10000) & (jnp.linalg.norm(prev_A - A) / jnp.linalg.norm(prev_A) > 1e-3)
 
 
 def main(inference_routine, dataset, check=False):
@@ -33,7 +34,7 @@ def main(inference_routine, dataset, check=False):
 
 if __name__ == '__main__':
     for inference_routine in INFERENCE_ROUTINES:
-        dataset = np.load(f'./data/var_10000_2_3.npz')
+        dataset = np.load(f'./data/var_2_10000_2_3.npz')
         res, A = main(inference_routine, dataset)
         print(f'A_true:{A}, A_estimated:{res[1]}')
         print(f'rel error:{np.linalg.norm(res[1] - A) / np.linalg.norm(A)}')

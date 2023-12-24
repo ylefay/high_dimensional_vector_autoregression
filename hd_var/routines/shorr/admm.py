@@ -74,13 +74,10 @@ def admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=1.0, criterion=criterion
         G = mode_unfold_p(G_mode1)
         Us = (U1, U2, U3)
         A = fast_ttm(G, Us)
-        pen_k *= 2
+        pen_k *= jax.lax.cond(n_iter < 64, lambda _: 2., lambda x: 1.0, None)
         return A, prev_A, n_iter + 1, Us, G, pen_k
 
     inps = (A, jnp.zeros_like(A), 0, Us, G, pen_k)
-    # while criterion(inps):
-    #    inps = iter_fun(inps)
-    # A, *_ = inps
     A, *_ = jax.lax.while_loop(criterion, iter_fun, inps)
     Us, G = hosvd(A, ranks)
     return G, A, Us

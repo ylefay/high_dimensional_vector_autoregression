@@ -9,7 +9,7 @@ def main(case=1, check=False):
     Sigma = 1.0, (N, P) = (10, 5),
     (r1, r2, r3) = (3, 3, {2, 3, 4})
     """
-    T = 100  # Length of the time series
+    T = 100000  # Length of the time series
     sigma = 1.0  # Variance of the innovations, assuming diagonal noise
     N, P = 10, 5
     if case == 1:
@@ -28,4 +28,4 @@ def main(case=1, check=False):
 
 
 if __name__ == '__main__':
-    main(case=1, check=True)
+    main(case=3, check=True)
