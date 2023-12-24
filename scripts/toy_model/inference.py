@@ -8,7 +8,7 @@ from hd_var.operations import rank_tensor
 from hd_var.assumptions import check_ass2, check_ass1
 from functools import partial
 
-INFERENCE_ROUTINES = [admm_compute]
+INFERENCE_ROUTINES = [als_compute_closed_form, als_compute, admm_compute]
 jax.config.update("jax_enable_x64", True)
 
 
