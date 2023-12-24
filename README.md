@@ -1,4 +1,4 @@
-# Efficient tensor implementation of vector autoregressive (VAR) model written in Jax.
+# Efficient tensor implementation of vector autoregression (VAR) model written in Jax.
 
 The VAR model of order $P\geq 1$ has the form:
 

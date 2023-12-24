@@ -15,7 +15,7 @@ jax.config.update("jax_enable_x64", True)
 
 def criterion(inps):
     A, prev_A, iter, *_ = inps
-    return (iter < 10000) & (jnp.linalg.norm(prev_A - A) / jnp.linalg.norm(prev_A) > 1e-3)
+    return (iter < 10) & (jnp.linalg.norm(prev_A - A) / jnp.linalg.norm(prev_A) > 1e-3)
 
 
 def main(inference_routine, dataset, check=False):
