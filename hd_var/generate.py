@@ -196,3 +196,59 @@ def generate_A_according_to_section62(case=1):
     Us = generate_sparse_orthonormal_matrices(case)
     A = ttm(G, Us)
     return A
+
+
+def generate_A_given_case(ranks, case):
+    r1, r2, r3 = ranks
+    if case == 'a' and r1 == 2 and r2 == 2 and r3 == 2:
+        N, P = 10, 5
+        U1, U2, U3 = generate_sparse_orthonormal_matrices(1)
+        G = generate_core_tensor([r1, r2, r3])
+        Us = [U1, U2, U3]
+        A = ttm(G, Us)
+        return A
+    elif case == 'a' and r1 == 3 and r2 == 3 and r3 == 3:
+        N, P = 10, 5
+        U1, U2, U3 = generate_sparse_orthonormal_matrices(2)
+        G = generate_core_tensor([r1, r2, r3])
+        Us = [U1, U2, U3]
+        A = ttm(G, Us)
+        return A
+    elif case == 'b' and r1 == 2 and r2 == 2 and r3 == 2:
+        print('TODO')
+    elif case == 'b' and r1 == 3 and r2 == 3 and r3 == 3:
+        print('TODO')
+    elif case == 'c' and r1 == 2 and r2 == 2 and r3 == 2:
+        N, P = 20, 5
+        U1, U2, U3 = generate_sparse_orthonormal_matrices(1)
+        U1 = 1 / 2 * np.concatenate((U1, U1))
+        U2 = 1 / 2 * np.concatenate((U2, U2))
+        G = generate_core_tensor([r1, r2, r3])
+        Us = [U1, U2, U3]
+        A = ttm(G, Us)
+        return A
+    elif case == 'c' and r1 == 3 and r2 == 3 and r3 == 3:
+        N, P = 20, 5
+        U1, U2, U3 = generate_sparse_orthonormal_matrices(2)
+        U1 = 1 / 2 * np.concatenate((U1, U1))
+        U2 = 1 / 2 * np.concatenate((U2, U2))
+        G = generate_core_tensor([r1, r2, r3])
+        Us = [U1, U2, U3]
+        A = ttm(G, Us)
+        return A
+    elif case == 'd' and r1 == 2 and r2 == 2 and r3 == 2:
+        N, P = 10, 10
+        U1, U2, U3 = generate_sparse_orthonormal_matrices(1)
+        U3 = 1 / 2 * np.concatenate((U3, U3))
+        G = generate_core_tensor([r1, r2, r3])
+        Us = [U1, U2, U3]
+        A = ttm(G, Us)
+        return A
+    elif case == 'd' and r1 == 3 and r2 == 3 and r3 == 3:
+        N, P = 10, 10
+        U1, U2, U3 = generate_sparse_orthonormal_matrices(2)
+        U3 = 1 / 2 * np.concatenate((U3, U3))
+        G = generate_core_tensor([r1, r2, r3])
+        Us = [U1, U2, U3]
+        A = ttm(G, Us)
+    return A
