@@ -35,7 +35,7 @@ if __name__ == '__main__':
     sigma = 1.0  # Variance of the innovations, assuming diagonal noise
     N, P = 10, 5
     cov = np.eye(N, ) * sigma  # Covariance matrix of the innovations
-    n_samples = 100
+    n_samples = 10
     y_list = np.zeros((n_samples, N, T))
     A_list = np.zeros((n_samples, N, N, P))
     E_list = np.zeros((n_samples, N, T))

@@ -9,14 +9,12 @@ from hd_var.assumptions import check_ass2, check_ass1
 import matplotlib.pyplot as plt
 import time
 
+PATH = r"C:\Users\schoo\OneDrive\Bureau\Mines\Cours\3A\MVA\Semestre 1\Séries temporelles\Projet\project_git\high_dimensional_vector_autoregressive\scripts\toy_model\Experiments\data\exp62"
+PATH = "./data/exp62/"
 INFERENCE_ROUTINES = [als_compute_closed_form, admm_compute]
 NAME_INFERENCE_ROUTINES = ['ALS', 'ADMM']
 jax.config.update("jax_enable_x64", True)
 T = [2000, 2500, 3000, 3500, 4000]
-
-
-# T = [2000,2500]
-# inference_routine = als_compute_closed_form
 
 
 def criterion(inps):
@@ -31,8 +29,7 @@ def main(dataset, inference_routine, t, check=False, show=False):
     n_sample, N, T = y_list.shape
     error_list = np.zeros(n_sample)
 
-    for i in range(2):
-        # for i in range(n_sample):
+    for i in range(n_sample):
         y, A = y_list[i], A_list[i]
 
         y_reshaped = y[:, :t]
@@ -54,7 +51,7 @@ def main(dataset, inference_routine, t, check=False, show=False):
 if __name__ == '__main__':
     start = time.time()
     dataset = np.load(
-        r"C:\Users\schoo\OneDrive\Bureau\Mines\Cours\3A\MVA\Semestre 1\Séries temporelles\Projet\project_git\high_dimensional_vector_autoregressive\scripts\toy_model\Experiments\data\exp62\data_10_5_4000_15_3_3_3.npz")
+        f"{PATH}data_10_5_4000_10_3_3_2.npz")
     n_sample = dataset['y_list'].shape[0]
     r1, r2, r3 = rank_tensor(dataset['A_list'][0])
     n_T = len(T)

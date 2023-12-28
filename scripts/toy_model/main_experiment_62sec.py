@@ -9,6 +9,8 @@ from hd_var.assumptions import check_ass2, check_ass1
 import matplotlib.pyplot as plt
 import time
 
+PATH = r"C:\Users\schoo\OneDrive\Bureau\Mines\Cours\3A\MVA\Semestre 1\Séries temporelles\Projet\project_git\high_dimensional_vector_autoregressive\scripts\toy_model\Experiments\data\exp62sec"
+PATH = "./data/exp62sec/"
 inference_routine = admm_compute
 cases = ['a', 'c']
 gamma = [0.05, 0.1, 0.15, 0.2, 0.25]
@@ -57,7 +59,7 @@ if __name__ == '__main__':
 
     for case in cases:
         dataset = np.load(
-            f'C:\\Users\\schoo\\OneDrive\\Bureau\\Mines\\Cours\\3A\\MVA\\Semestre 1\\Séries temporelles\\Projet\\project_git\\high_dimensional_vector_autoregressive\\scripts\\toy_model\\Experiments\\data\\exp62sec\\data_{T}_{case}_{R}.npz')
+            f'{PATH}data_{T}_{case}_{R}.npz')
         y_list, A_list = dataset['y_list'], dataset['A_list']
         n_sample, N, T = y_list.shape
         r1, r2, r3 = rank_tensor(dataset['A_list'][0])
