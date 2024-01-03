@@ -29,7 +29,7 @@ def main(ranks, T, N, P, cov, check=False, save=False):
 
 if __name__ == '__main__':
     T = 3000  # Length of the time series
-    sigma = 0.065  # Variance of the innovations, assuming diagonal noise
+    sigma = 1.0  # Variance of the innovations, assuming diagonal noise
     case = 'c'
     n_samples = 10
     if case == 'a':

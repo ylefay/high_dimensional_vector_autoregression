@@ -11,8 +11,8 @@ import jax.lax
 
 
 def criterion(inps):
-    A, prev_A, n_iter, *_ = inps
-    return (n_iter < 1000) & (jnp.linalg.norm(A - prev_A) / jnp.linalg.norm(prev_A) > 1e-9)
+    A, prev_A, iter, *_ = inps
+    return (iter < 1000) & (jnp.linalg.norm(prev_A - A) > 1e-2)
 
 
 def _admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=1.0, criterion=criterion, iter_sor=100):
