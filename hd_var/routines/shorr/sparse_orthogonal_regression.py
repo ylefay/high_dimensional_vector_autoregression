@@ -22,13 +22,13 @@ def subroutine(y, X, B, pen_l, pen_k=1, max_iter=100):
     def criterion(inps):
         n_iter, reg, W, _ = inps
         return ((n_iter < max_iter) & (
-                jnp.linalg.norm(unvec(reg, B.shape) - W) / jnp.linalg.norm(W) > 1e-2)) + (
+                jnp.linalg.norm(unvec(reg, B.shape) - W) / jnp.linalg.norm(W) > 1e-4)) + (
                        n_iter == 0)
 
     def criterion_for_orthogonal_iter(inps):
         n_iter, reg, Q, _ = inps
         return ((n_iter < max_iter) & (
-                jnp.linalg.norm(unvec(reg, B.shape) - Q) / jnp.linalg.norm(Q) > 1e-2)) + (
+                jnp.linalg.norm(unvec(reg, B.shape) - Q) / jnp.linalg.norm(Q) > 1e-4)) + (
                        n_iter == 0)
 
     def iter_fun(inps):

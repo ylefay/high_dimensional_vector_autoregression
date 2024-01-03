@@ -31,15 +31,15 @@ def main(ranks, T, N, P, cov, check=False, save=False):
 
 
 if __name__ == '__main__':
-    T = 4000  # Length of the time series
+    T = 16000  # Length of the time series
     sigma = 1.0  # Variance of the innovations, assuming diagonal noise
-    N, P = 10, 5
+    N, P = 2, 3
     cov = np.eye(N, ) * sigma  # Covariance matrix of the innovations
-    n_samples = 10
+    n_samples = 1
     y_list = np.zeros((n_samples, N, T))
     A_list = np.zeros((n_samples, N, N, P))
     E_list = np.zeros((n_samples, N, T))
-    ranks = [3, 3, 2]
+    ranks = [2, 1, 3]
     for i in range(n_samples):
         y_list[i], A_list[i], E_list[i] = main(ranks=ranks, T=T, N=N, P=P, cov=cov,
                                                check=True)

@@ -8,11 +8,12 @@ from hd_var.operations import rank_tensor
 from hd_var.assumptions import check_ass2, check_ass1
 import matplotlib.pyplot as plt
 import time
+from functools import partial
 
 PATH = r"C:\Users\schoo\OneDrive\Bureau\Mines\Cours\3A\MVA\Semestre 1\Séries temporelles\Projet\project_git\high_dimensional_vector_autoregressive\scripts\toy_model\Experiments\data\exp62sec"
 PATH = "./data/exp62sec/"
-inference_routine = admm_compute
-cases = ['a', 'c']
+inference_routine = partial(admm_compute, pen_l=0.0035)
+cases = ['c']
 gamma = [0.05, 0.1, 0.15, 0.2, 0.25]
 n_gamma = len(gamma)
 R = 2

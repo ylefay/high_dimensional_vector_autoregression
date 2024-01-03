@@ -158,7 +158,7 @@ def generate_orthonormal_matrices(N, P, ranks):
     Us = [np.empty(shape=(N, ranks[0])), np.empty(shape=(N, ranks[1])), np.empty(shape=(P, ranks[2]))]
 
     for i in range(3):
-        random = np.random.normal(size=Us[i].shape)
+        random = np.random.normal(size=(Us[i].shape[0], Us[i].shape[0]))
         left, singular, right = np.linalg.svd(random, compute_uv=True)
         Us[i] = left[:, :ranks[i]]
     return Us
@@ -203,17 +203,9 @@ def generate_A_given_case(ranks, case):
     if case == 'a' and r1 == 2 and r2 == 2 and r3 == 2:
         N, P = 10, 5
         U1, U2, U3 = generate_sparse_orthonormal_matrices(1)
-        G = generate_core_tensor([r1, r2, r3])
-        Us = [U1, U2, U3]
-        A = ttm(G, Us)
-        return A
     elif case == 'a' and r1 == 3 and r2 == 3 and r3 == 3:
         N, P = 10, 5
         U1, U2, U3 = generate_sparse_orthonormal_matrices(2)
-        G = generate_core_tensor([r1, r2, r3])
-        Us = [U1, U2, U3]
-        A = ttm(G, Us)
-        return A
     elif case == 'b' and r1 == 2 and r2 == 2 and r3 == 2:
         print('TODO')
     elif case == 'b' and r1 == 3 and r2 == 3 and r3 == 3:
@@ -221,34 +213,22 @@ def generate_A_given_case(ranks, case):
     elif case == 'c' and r1 == 2 and r2 == 2 and r3 == 2:
         N, P = 20, 5
         U1, U2, U3 = generate_sparse_orthonormal_matrices(1)
-        U1 = 1 / 2 * np.concatenate((U1, U1))
-        U2 = 1 / 2 * np.concatenate((U2, U2))
-        G = generate_core_tensor([r1, r2, r3])
-        Us = [U1, U2, U3]
-        A = ttm(G, Us)
-        return A
+        U1 = np.vstack([U1, np.zeros((10, 2))])
+        U2 = np.vstack([U2, np.zeros((10, 2))])
     elif case == 'c' and r1 == 3 and r2 == 3 and r3 == 3:
         N, P = 20, 5
         U1, U2, U3 = generate_sparse_orthonormal_matrices(2)
-        U1 = 1 / 2 * np.concatenate((U1, U1))
-        U2 = 1 / 2 * np.concatenate((U2, U2))
-        G = generate_core_tensor([r1, r2, r3])
-        Us = [U1, U2, U3]
-        A = ttm(G, Us)
-        return A
+        U1 = np.vstack([U1, np.zeros((10, 3))])
+        U2 = np.vstack([U2, np.zeros((10, 3))])
     elif case == 'd' and r1 == 2 and r2 == 2 and r3 == 2:
         N, P = 10, 10
         U1, U2, U3 = generate_sparse_orthonormal_matrices(1)
-        U3 = 1 / 2 * np.concatenate((U3, U3))
-        G = generate_core_tensor([r1, r2, r3])
-        Us = [U1, U2, U3]
-        A = ttm(G, Us)
-        return A
+        U3 = np.vstack([U3, np.zeros((5, 2))])
     elif case == 'd' and r1 == 3 and r2 == 3 and r3 == 3:
         N, P = 10, 10
         U1, U2, U3 = generate_sparse_orthonormal_matrices(2)
-        U3 = 1 / 2 * np.concatenate((U3, U3))
-        G = generate_core_tensor([r1, r2, r3])
-        Us = [U1, U2, U3]
-        A = ttm(G, Us)
+        U3 = np.vstack([U3, np.zeros((5, 3))])
+    G = generate_core_tensor(ranks)
+    Us = [U1, U2, U3]
+    A = ttm(G, Us)
     return A

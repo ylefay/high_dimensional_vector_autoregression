@@ -10,4 +10,5 @@ def lambda_optimal(N, P, T, cov):
 
     M = eigh(a=cov, subset_by_index=(N - 1, N - 1), eigvals_only=True)[0]
     factor = np.sqrt(np.log(N ** 2 * P) / T)
-    return factor * M * 2
+    factor_p = 4
+    return factor * M * factor_p

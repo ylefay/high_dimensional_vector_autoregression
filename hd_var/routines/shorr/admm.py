@@ -12,10 +12,10 @@ import jax.lax
 
 def criterion(inps):
     A, prev_A, n_iter, *_ = inps
-    return (n_iter < 1000) & (jnp.linalg.norm(A - prev_A) / jnp.linalg.norm(prev_A) > 1e-5)
+    return (n_iter < 1000) & (jnp.linalg.norm(A - prev_A) / jnp.linalg.norm(prev_A) > 1e-9)
 
 
-def _admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=1.0, criterion=criterion, iter_sor=5):
+def _admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=1.0, criterion=criterion, iter_sor=100):
     """
     See Algorithm 2. in the paper.
     Compute the SHORR estimate.
@@ -50,6 +50,7 @@ def _admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=1.0, criterion=criterio
 
     def iter_fun(inps):
         A, prev_A, n_iter, Us, G, Ds, Vs, Cs_flattened, pen_k = inps
+        prev_A = A
         U1, U2, U3 = Us
         G_flattened_mode1 = mode_fold(G, 0)
 
@@ -70,7 +71,7 @@ def _admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=1.0, criterion=criterio
 
         factor_G_mode1 = fun_factor_G_mode1(U1=U1, U2=U2, U3=U3)
         factor_G_mode1 = factor_G_mode1.reshape((-1, factor_G_mode1.shape[-1]))
-        vecG_mode1 = jnp.linalg.inv(factor_G_mode1.T @ factor_G_mode1) @ factor_G_mode1.T @ y_ts_reshaped
+        vecG_mode1 = jnp.linalg.pinv(factor_G_mode1.T @ factor_G_mode1) @ factor_G_mode1.T @ y_ts_reshaped
         G_mode1 = unvec_p(vecG_mode1)
         G = mode_unfold_p(G_mode1)
         G_flattened_mode2 = mode_fold(G, 1)
@@ -95,7 +96,7 @@ def _admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=1.0, criterion=criterio
         Cs_flattened = (C1_flattened_mode1, C2_flattened_mode2, C3_flattened_mode3)
 
         A = fast_ttm(G, Us)
-        pen_k *= jax.lax.cond(n_iter < 64, lambda _: 2., lambda x: 1.0, None)
+        pen_k *= jax.lax.cond(n_iter < 64, lambda _: 1.0, lambda x: 1.0, None)
         return A, prev_A, n_iter + 1, Us, G, Ds, Vs, Cs_flattened, pen_k
 
     Ds = (jnp.eye(ranks[0]), jnp.eye(ranks[1]), jnp.eye(ranks[2]))
@@ -109,7 +110,7 @@ def _admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=1.0, criterion=criterio
     return G, A, Us
 
 
-def admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=1.0, criterion=criterion, iter_sor=5):
+def admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=1.0, criterion=criterion, iter_sor=100):
     """
     See Algorithm 2. in the paper.
     Compute the SHORR estimate.
@@ -144,6 +145,7 @@ def admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=1.0, criterion=criterion
 
     def iter_fun(inps):
         A, prev_A, n_iter, Us, G, pen_k = inps
+        prev_A = A
         U1, U2, U3 = Us
         G_flattened_mode1 = mode_fold(G, 0)
 
@@ -164,12 +166,12 @@ def admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=1.0, criterion=criterion
 
         factor_G_mode1 = fun_factor_G_mode1(U1=U1, U2=U2, U3=U3)
         factor_G_mode1 = factor_G_mode1.reshape((-1, factor_G_mode1.shape[-1]))
-        vecG_mode1 = jnp.linalg.inv(factor_G_mode1.T @ factor_G_mode1) @ factor_G_mode1.T @ y_ts_reshaped
+        vecG_mode1 = jnp.linalg.pinv(factor_G_mode1.T @ factor_G_mode1) @ factor_G_mode1.T @ y_ts_reshaped
         G_mode1 = unvec_p(vecG_mode1)
         G = mode_unfold_p(G_mode1)
         Us = (U1, U2, U3)
         A = fast_ttm(G, Us)
-        pen_k *= jax.lax.cond(n_iter < 64, lambda _: 2., lambda x: 1.0, None)
+        pen_k *= jax.lax.cond(n_iter < 64, lambda _: 1.0, lambda x: 1.0, None)
         return A, prev_A, n_iter + 1, Us, G, pen_k
 
     inps = (A, jnp.zeros_like(A), 0, Us, G, pen_k)

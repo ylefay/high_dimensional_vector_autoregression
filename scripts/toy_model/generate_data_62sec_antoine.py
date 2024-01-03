@@ -23,12 +23,13 @@ def main(ranks, T, N, P, cov, check=False, save=False):
             # print("Non Stationnaire")
     if save:
         np.savez(f'{PATH}data/var_62_{T}_{N}_{P}.npz', y=y, A=A, E=E)
+    print(A)
     return y, A, E
 
 
 if __name__ == '__main__':
     T = 3000  # Length of the time series
-    sigma = 1.0  # Variance of the innovations, assuming diagonal noise
+    sigma = 0.065  # Variance of the innovations, assuming diagonal noise
     case = 'c'
     n_samples = 10
     if case == 'a':
@@ -38,7 +39,7 @@ if __name__ == '__main__':
     elif case == 'c':
         N, P = 20, 5
     elif case == 'd':
-        N, P = 10, 10
+        N, P = 10, 5
     cov = np.eye(N, ) * sigma  # Covariance matrix of the innovations
     ranks = [2, 2, 2]
     y_list = np.zeros((n_samples, N, T))
@@ -47,5 +48,5 @@ if __name__ == '__main__':
     for i in range(n_samples):
         y_list[i], A_list[i], E_list[i] = main(ranks=ranks, T=T, N=N, P=P, cov=cov,
                                                check=True)
-    np.savez(f'{PATH}data_{N}_{P}_{T}_{n_samples}_{ranks[0]}_{ranks[1]}_{ranks[2]}.npz',
+    np.savez(f'{PATH}data_{T}_{case}_{ranks[0]}.npz',
              y_list=y_list, A_list=A_list, E_list=E_list)
