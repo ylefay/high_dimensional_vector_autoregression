@@ -34,7 +34,7 @@ def main(inference_routine, dataset, check=False):
 
 if __name__ == '__main__':
     for inference_routine in INFERENCE_ROUTINES:
-        dataset = np.load(f'./data/exp62sec/data_3000_c_2.npz')
+        dataset = np.load(f'./data/var_4_260_3_2.npz')
         if 'y_list' in dataset.keys():
             for i in range(len(dataset['y_list'])):
                 _dataset = {'y': dataset['y_list'][i], 'A': dataset['A_list'][i], 'E': dataset['E_list'][i]}

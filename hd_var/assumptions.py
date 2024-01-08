@@ -1,7 +1,8 @@
 import numpy as np
-from hd_var.operations import mode_fold, rank_tensor
-from hd_var.hosvd import hosvd
 import scipy
+
+from hd_var.hosvd import hosvd
+from hd_var.operations import mode_fold, rank_tensor
 
 
 def check_ass2(A):
@@ -25,6 +26,7 @@ def check_ass1(A):
     """
     Check Assumption 1: Stationarity condition on A
     Failing to converge...
+    Should use ADF test.
     """
     N, P = A.shape[-2:]
     id = np.eye(N)
@@ -50,10 +52,3 @@ def check_ass1(A):
     except Exception as e:
         print(e)
         return True
-
-
-def check_ass1_bis(A):
-    """
-    Implementing the ADF test ?
-    """
-    raise NotImplementedError

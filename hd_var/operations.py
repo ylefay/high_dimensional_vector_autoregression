@@ -1,10 +1,11 @@
-import numpy as np
 from collections.abc import Sequence
-from scipy.linalg import eigh
-from scipy.sparse import issparse as issparse_mat
-from scipy.sparse import csr_matrix
-from scipy.sparse.linalg import eigsh
+
 import jax.numpy as jnp
+import numpy as np
+from scipy.linalg import eigh
+from scipy.sparse import csr_matrix
+from scipy.sparse import issparse as issparse_mat
+from scipy.sparse.linalg import eigsh
 
 
 def mode_fold(tensor, mode):

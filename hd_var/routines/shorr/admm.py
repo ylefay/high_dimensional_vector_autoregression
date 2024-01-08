@@ -1,13 +1,15 @@
+from functools import partial
+
+import jax.lax
+import jax.numpy as jnp
+
+import hd_var.routines.shorr.losses as losses
+import hd_var.routines.shorr.sparse_orthogonal_regression as sor
 from hd_var.hosvd import hosvd
 from hd_var.operations import mode_fold, fast_ttm, unvec, mode_unfold
 from hd_var.routines.mlr.utils import constructX
-from hd_var.routines.shorr.penalization import lambda_optimal
-import hd_var.routines.shorr.sparse_orthogonal_regression as sor
 from hd_var.routines.shorr.diag_lsq import diag_lsq
-import hd_var.routines.shorr.losses as losses
-from functools import partial
-import jax.numpy as jnp
-import jax.lax
+from hd_var.routines.shorr.penalization import lambda_optimal
 
 
 def criterion(inps):
@@ -19,6 +21,7 @@ def _admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=1.0, criterion=criterio
     """
     See Algorithm 2. in the paper.
     Compute the SHORR estimate.
+    Author: Yvann Le Fay
     """
     # Computing the initial HOSVD decomposition
     A = A_init
@@ -114,6 +117,7 @@ def admm_compute(A_init, ranks, y_ts, pen_l=None, pen_k=1.0, criterion=criterion
     """
     See Algorithm 2. in the paper.
     Compute the SHORR estimate.
+    Author: Yvann Le Fay
     """
     # Computing the initial HOSVD decomposition
     A = A_init

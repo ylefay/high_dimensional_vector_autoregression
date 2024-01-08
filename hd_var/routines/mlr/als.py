@@ -1,12 +1,14 @@
+from functools import partial
+
 import jax.lax
 import jax.numpy as jnp
-from functools import partial
+
+import hd_var.routines.mlr.losses as losses
+import hd_var.routines.shorr.losses as shorr_losses
 from hd_var.hosvd import hosvd
 from hd_var.operations import mode_fold, mode_unfold, fast_ttm, unvec
 from hd_var.routines.mlr.utils import constructX
 from hd_var.utils import minimize_matrix_input
-import hd_var.routines.mlr.losses as losses
-import hd_var.routines.shorr.losses as shorr_losses
 
 
 def criterion(inps):

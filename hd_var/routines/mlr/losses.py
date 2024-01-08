@@ -1,10 +1,12 @@
-import jax.numpy as np
 import jax
+import jax.numpy as np
+
 from hd_var.operations import vec
 
 """
 Defining the losses involved in the ALS algorithm, Alg. 1.
 Simple LS regression in the unconstrained optimization problems.
+Author: Yvann Le Fay
 """
 
 

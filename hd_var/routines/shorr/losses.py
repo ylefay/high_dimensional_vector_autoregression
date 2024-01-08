@@ -1,5 +1,11 @@
 import jax.numpy as jnp
+
 from hd_var.operations import vec
+
+"""
+Needed losses for the ADMM. Similar to mlr.losses
+Author: Yvann Le Fay
+"""
 
 
 def loss(y, X, B):

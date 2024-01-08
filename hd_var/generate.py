@@ -1,4 +1,5 @@
 import numpy as np
+
 from hd_var.operations import mode_fold, ttm
 
 
