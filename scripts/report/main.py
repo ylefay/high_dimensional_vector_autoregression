@@ -21,7 +21,7 @@ if case == 1:
     df_group2 = df.iloc[:, id_group2]
     df = df_group2
     df_without_missing_values = df.dropna(axis=1)  # Remove columns with NA value
-    df_without_head = df_without_missing_values.iloc[2:]  # Remove 2 first lines of informations
+    df_without_head = df_without_missing_values.iloc[2:]  # Remove 2 first lines
     df_final = df_without_head.iloc[:, 1:]  # Remove date
     y = np.array(df_final).T
 
@@ -165,16 +165,12 @@ np.savez(folder, y_pred=result_to_save)
 
 # %%
 data = np.load(f'{PATH}result_mlr.npz')
-time, y_pred = data['y_pred'][:,0], data['y_pred'][:,1:]
+time, y_pred = data['y_pred'][:, 0], data['y_pred'][:, 1:]
 
 # %%
 for i in range(N):
     time = np.linspace(0, y.shape[1] - 1, y.shape[1])[-n_points_to_predict - 1:].reshape(-1, 1).T
-    y_save = y_pred[:,i][-n_points_to_predict - 1:].reshape(-1, 1).T
-    '''
-    time = np.linspace(0,y.shape[1]-1,y.shape[1]).reshape(-1,1).T
-    y_save = y_normalize[i,:].reshape(-1,1).T
-    '''
+    y_save = y_pred[:, i][-n_points_to_predict - 1:].reshape(-1, 1).T
     result_to_save = np.concatenate((time, y_save)).T
     folder = f'{PATH}series_mlr_{i}.csv'
     np.savetxt(folder, result_to_save, delimiter=',', header=','.join(column_names), comments='', fmt='%.6f')
