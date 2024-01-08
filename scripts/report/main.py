@@ -101,7 +101,7 @@ P = 4  # hand-chosen
 lam = 1e-2 * np.log(N * N * P)  # hand-chosen
 
 # %% rank estimation and noise estimation
-repeat = 1
+repeat = 10
 noise_var = np.zeros((N, N))
 ranks_estimated = np.zeros(3)
 for k in range(repeat):
@@ -119,8 +119,8 @@ noise_var /= repeat
 pen_l = lambda_optimal(N, P, T, cov=noise_var)
 admm = partial(admm_compute, pen_l=pen_l)
 # %%
-ranks = [3, 3, 2]  # hand-chosen
-inference_routine = admm  # admm #als_compute_closed_form
+ranks = [1, 2, 1]  # hand-chosen
+inference_routine = als_compute_closed_form  # admm #als_compute_closed_form
 it = 0
 while True and it < 1:
     try:
@@ -157,24 +157,24 @@ print(error)  # SHORR 1.1708 ok : 1245 # mlr : 2.7642
 # %%
 column_names = ['time', 'serie']
 time = np.linspace(0, y.shape[1] - 1, y.shape[1]).reshape(-1, 1).T
-result_to_save = np.concatenate((time, y)).T
+result_to_save = np.concatenate((time, y_int_pred)).T
 
 # %%
-folder = f'{PATH}series.csv'
-np.savetxt(folder, result_to_save, delimiter=',', header=','.join(column_names), comments='', fmt='%.6f')
+folder = f'{PATH}result_mlr.npz'
+np.savez(folder, y_pred=result_to_save)
 
 # %%
-data = np.load(f'{PATH}result_shorr.npz')
-y_pred = data['y_pred']
+data = np.load(f'{PATH}result_mlr.npz')
+time, y_pred = data['y_pred'][:,0], data['y_pred'][:,1:]
 
 # %%
-for i in range(6):
+for i in range(N):
     time = np.linspace(0, y.shape[1] - 1, y.shape[1])[-n_points_to_predict - 1:].reshape(-1, 1).T
-    y_save = y_pred[i, :][-n_points_to_predict - 1:].reshape(-1, 1).T
+    y_save = y_pred[:,i][-n_points_to_predict - 1:].reshape(-1, 1).T
     '''
     time = np.linspace(0,y.shape[1]-1,y.shape[1]).reshape(-1,1).T
     y_save = y_normalize[i,:].reshape(-1,1).T
     '''
     result_to_save = np.concatenate((time, y_save)).T
-    folder = f'{PATH}series_shorr_{i}.csv'
+    folder = f'{PATH}series_mlr_{i}.csv'
     np.savetxt(folder, result_to_save, delimiter=',', header=','.join(column_names), comments='', fmt='%.6f')
