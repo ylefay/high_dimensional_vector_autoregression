@@ -163,7 +163,6 @@ def ttm_compute(X, V, mode, transp):
         p = V.shape[0]
     newsz = [p] + list(sz[:mode]) + list(sz[mode + 1:])
     newT = newT.reshape(newsz)
-    # transpose + argsort(order) equals ipermute
     newT = np.transpose(newT, np.argsort(order))
     return newT
 

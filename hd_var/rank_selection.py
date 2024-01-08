@@ -1,5 +1,4 @@
 import numpy as np
-import scipy
 import jax.numpy as jnp
 
 from hd_var.operations import mode_fold, unvec, vec, mode_unfold
@@ -31,7 +30,7 @@ def rank_selection(A, T):
 def NN_compute(y, P, lamb, A_init=None):
     """
     Nuclear-Norm estimator using scipy.optimize.minimize
-    Author: Schoonaert Antoine
+    Author: Schoonaert Antoine, Yvann Le Fay
     """
     N, T = y.shape
     x_ts = constructx(y, P)
