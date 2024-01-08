@@ -4,7 +4,7 @@ from hd_var.assumptions import check_ass2, check_ass1
 
 
 def main(check=False):
-    T = 260  # Length of the time series
+    T = 10000  # Length of the time series
     sigma = 1.0  # Variance of the innovations, assuming diagonal noise
     A = np.array([[[0.5, 0.1, 0.0], [0.25, 0.0, 0.2]], [[0.1, 0.1, -0.05], [0.6, -0.2, 0.1]]])  # 2, 3 WORKS
     A = np.array(

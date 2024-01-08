@@ -65,6 +65,11 @@ if case == 2:
 
     y = df_full.T
 
+if case == 3:
+    data = np.load(f"{PATH}/var_4_10000_3_2.npz", allow_pickle=True)
+    y = data['y'][:, 5:200]
+    A_true = data['A']
+
 
 def plot_line_array(y, k):
     '''
@@ -76,20 +81,16 @@ def plot_line_array(y, k):
 
 
 def differentiate(y):
-    '''
-    Return the series y_t - y_t-1 
-    '''
+    """
+    Return the series y_t - y_t-1
+    """
     y_diff = np.diff(y, axis=-1)
     return y_diff
 
 
 def integrate_series(y_0, y_diff):
-    N, T_1 = y_diff.shape
-    T = T_1 + 1
-    y = np.zeros((N, T))
-    y[:, 1:] = np.cumsum(y_diff, axis=-1)
-    y += np.outer(y_0, np.ones(T))
-    return y
+    N = y_diff.shape[0]
+    return np.hstack((y_0.reshape(N, 1), y_diff)).cumsum(axis=-1)
 
 
 def estimate_noise_variance(y, A):
@@ -100,81 +101,95 @@ def estimate_noise_variance(y, A):
     N, P = A.shape[0], A.shape[2]
     T = y.shape[1]
     y_hat = np.zeros((N, T))
+
     for t in range(P, T):
-        y_hat[:, t] = np.sum(np.array([np.dot(A[:, :, i], y[:, t - 1 - i]) for i in range(P)]), axis=0)
+        for p in range(P):
+            y_hat[:, t] += A[:, :, p] @ y[:, t - p - 1]
     noise = y[:, P:] - y_hat[:, P:]
     noise_variance = np.cov(noise)
     return noise_variance
 
 
-def predict(y, A, n_times):
+def predict(y, A, n_times, cov):
     N, P = A.shape[0], A.shape[2]
     T = y.shape[1]
     y_out = np.concatenate((y, np.zeros((N, n_times))), axis=1)
+    noises = np.random.multivariate_normal(np.zeros(N), cov, size=n_times)
     for k in range(n_times):
-        y_out[:, T + k] = np.sum(np.array([np.dot(A[:, :, i], y_out[:, T + k - 1 - i]) for i in range(P)]), axis=0)
+        y_out[:, T + k] = noises[k] + np.sum(np.array([np.dot(A[:, :, i], y_out[:, T + k - 1 - i]) for i in range(P)]),
+                                             axis=0)
     return y_out
 
 
-def normalise_y(y):
-    return (y - np.min(y, axis=-1, keepdims=True)) / (
-            np.max(y, axis=-1, keepdims=True) - np.min(y, axis=-1, keepdims=True))
+def normalise_y(y, window=-1):
+    y_w = y[:, :window]
+    return (y - np.min(y_w, axis=-1, keepdims=True)) / (
+            np.max(y_w, axis=-1, keepdims=True) - np.min(y_w, axis=-1, keepdims=True))
 
 
 plot_line_array(normalise_y(y), 0)
-
+N = y.shape[0]
 # %%
+ORDER = 1
+normalise = True
 n_points_to_predict = 8
-y_n = normalise_y(y)
+if normalise:
+    y = normalise_y(y, -n_points_to_predict)
 y_without_end = y[:, :-n_points_to_predict]
-y_without_end_n = normalise_y(y_without_end)
-y_diff_without_end = differentiate(y_without_end_n)
-y_diff_diff_without_end = differentiate(y_diff_without_end)
+y_after_diff_without_end = y_without_end
+constants = np.zeros((ORDER, N))
+for ord in range(ORDER):
+    constants[ord] = y_after_diff_without_end[:, 0]
+    y_after_diff_without_end = differentiate(y_after_diff_without_end)
 
-N, T = y_diff_diff_without_end.shape
+_, T = y_after_diff_without_end.shape
 P = 4  # hand-chosen
 lam = 1e-2 * np.log(N * N * P)  # hand-chosen
 
 # %% rank estimation and noise estimation
 repeat = 1
 noise_var = np.zeros((N, N))
+ranks_estimated = np.zeros(3)
 for k in range(repeat):
-    A_estimated_NN = NN_compute(y_diff_diff_without_end, P, lam, A_init="random")[0]  # depends upon an initial guess.
-    ranks_estimated = rank_selection(A_estimated_NN, T)
-    ranks_estimated = [int(ranks_estimated[i]) for i in range(len(ranks_estimated))]
-    noise_var += estimate_noise_variance(y_diff_diff_without_end,
+    A_estimated_NN = NN_compute(y_after_diff_without_end, P, lam, A_init="random")[0]  # depends upon an initial guess.
+    _ranks_estimated = rank_selection(A_estimated_NN, T)
+    ranks_estimated += [int(_ranks_estimated[i]) for i in range(3)]
+    noise_var += estimate_noise_variance(y_after_diff_without_end,
                                          A_estimated_NN)  # performing at the same time a noise estimation
-    print(ranks_estimated)
+    print(_ranks_estimated)
+ranks_estimated = (ranks_estimated / repeat).astype(int)
+print(ranks_estimated)
 noise_var /= repeat
 
 # %% penalisation for SHORR estimate
 pen_l = lambda_optimal(N, P, T, cov=noise_var)
 admm = partial(admm_compute, pen_l=pen_l)
 # %%
-ranks = [2, 2, 2]  # Those ranks have previously been estimated.
-inference_routine = als_compute_closed_form  # admm #als_compute_closed_form
+ranks = [3, 3, 2]  # hand-chosen
+inference_routine = admm  # admm #als_compute_closed_form
 it = 0
 while True and it < 1:
     try:
         it += 1
         A_rand = generate_A_given_rank(N, P, ranks)
-        _, A_est, _ = inference_routine(A_init=A_rand, ranks=ranks, y_ts=y_diff_diff_without_end)
-        y_diff_diff_pred = predict(y_diff_diff_without_end, A_est, n_points_to_predict)
+        _, A_est, _ = inference_routine(A_init=A_rand, ranks=ranks, y_ts=y_after_diff_without_end)
+        y_after_diff_pred = predict(y_after_diff_without_end, A_est, n_points_to_predict, cov=noise_var)
         for i in range(N):
             plt.title(i)
-            plt.plot(y_diff_diff_pred[i, :])
+            plt.plot(y_after_diff_pred[i, :])
             plt.show()
-        y_diff_pred = integrate_series(y_diff_without_end[:, 0], y_diff_diff_pred)
-        y_pred = integrate_series(y_without_end_n[:, 0], y_diff_pred)
+        y_int_pred = y_after_diff_pred
+        for ord in range(ORDER):
+            y_int_pred = integrate_series(constants[ORDER - 1 - ord], y_int_pred)
         print('success')
         break
     except ValueError:
         pass
 
 # %%
-for j in range(6):
-    y_line_pred = y_pred[j, :]
-    y_line = y_n[j, :]
+for j in range(N):
+    y_line_pred = y_int_pred[j, :]
+    y_line = y[j, :]
     plt.plot(y_line, label="real")
     plt.plot(y_line_pred, label="pred")
     plt.title(f'{j}')
@@ -182,14 +197,13 @@ for j in range(6):
     plt.show()
 
 # %%
-error = np.linalg.norm(y_pred - y_n)
-error = np.sum((y_pred - y_n) ** 2)
+error = np.linalg.norm(y_int_pred - y)
 print(error)  # SHORR 1.1708 ok : 1245 # mlr : 2.7642
 
 # %%
 column_names = ['time', 'serie']
 time = np.linspace(0, y.shape[1] - 1, y.shape[1]).reshape(-1, 1).T
-result_to_save = np.concatenate((time, y_n)).T
+result_to_save = np.concatenate((time, y)).T
 
 # %%
 folder = f'{PATH}series.csv'
