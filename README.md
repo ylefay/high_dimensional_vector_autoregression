@@ -14,12 +14,14 @@ in [@wang2020highdimensional].
 # It includes:
 
 - An alternative least-square algorithm for VAR estimation via Tensor decomposition.
-- An implementation of the SHORR algorithm, Lasso-penalized for VAR estimation via Tensor decomposition.
+- An implementation of the SHORR algorithm, Lasso-penalized regression for VAR estimation via Tensor decomposition.
 - An implementation of the Higher-order singular value decomposition (HOSVD) algorithm.
-- A subroutine for sparse and orthogonal regression.
+- A subroutine for sparse and orthogonal regressions.
 - Multiple procedures to sample VAR models. 
 - Multiple tensor algebra related procedures.
 
 # References
+- High-dimensional vector autoregressive time series modeling via tensor decomposition, by Di Wang, Yao Zheng, Heng Lian and Guodong Li.
+- A splitting method for orthogonality constrainted problems, by Lai Rongjie and Osher Stanley.
 
 See ref.bib.
